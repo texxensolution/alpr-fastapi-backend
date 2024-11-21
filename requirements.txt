@@ -1,0 +1,7 @@
+fastapi[standard]
+python-dotenv
+polars
+ngrok
+pydantic
+pyyaml
+rapidfuzz

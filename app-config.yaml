@@ -1,0 +1,7 @@
+app:
+  name: ALPR FastAPI Backend
+  version: 1.0.0
+  environment: development
+
+datasource:
+  path: 'accounts.csv'
