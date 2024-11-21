@@ -5,3 +5,4 @@ ngrok
 pydantic
 pyyaml
 rapidfuzz
+rq
