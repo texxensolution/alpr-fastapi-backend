@@ -16,6 +16,7 @@ class AccountStatus:
             raise FileNotFoundError(f"Error: Cannot load {path} as dataframe")
 
         self.normalized_column_name = normalized_column_name
+
         self.path = path
 
         self._account_table = pl.read_csv(path)
@@ -40,8 +41,6 @@ class AccountStatus:
     
     
     def get_account_info_by_plate(self, target_plate: str) -> Account | None:
-        target_plate = normalize_plate(target_plate)
-
         matching_rows = self._account_table.filter(
             pl.col("PLATE_NUMBER_NORMALIZED") == target_plate
         ).sort("ENDO_DATE", descending=True)
@@ -68,8 +67,6 @@ class AccountStatus:
         self,
         target_plate: str
     ) -> List[Account]:
-        target_plate = normalize_plate(target_plate)
-
         similar_accounts_df = self._account_table.with_columns(
             pl.col("PLATE_NUMBER_NORMALIZED")
                 .map_elements(lambda plate: is_similar_plate(target_plate, plate))

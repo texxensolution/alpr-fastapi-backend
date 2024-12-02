@@ -3,6 +3,8 @@ from rq import Queue
 from models.notification import Notification
 from .send_notification import send_notification_on_background
 from lark.token_manager import TokenManager
+from jobs.notify_group_chat import QueuedPlateDetected, notify_group_chat
+
 
 class NotificationQueue:
     def __init__(
@@ -20,5 +22,15 @@ class NotificationQueue:
             send_notification_on_background,
             self._token_manager,
             notification
+        )
+
+    def push_v2(
+        self,
+        queued_task: QueuedPlateDetected
+    ):
+        self.q.enqueue(
+            notify_group_chat,
+            self._token_manager,
+            queued_task
         )
         

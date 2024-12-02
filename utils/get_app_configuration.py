@@ -6,7 +6,7 @@ from functools import lru_cache
 
 def get_app_configuration( 
     path: str = 'app-config.yaml'
-) -> AppConfiguration | None:
+):
     if not os.path.exists(path):
         raise FileNotFoundError(f"Error: Configuration file located at {path} not found!")
     
@@ -16,9 +16,3 @@ def get_app_configuration(
 
         return app_config
 
-    return None
-
-    
-
-
-    

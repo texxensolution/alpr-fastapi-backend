@@ -9,7 +9,6 @@ def send_notification_on_background(
     token_manager: TokenManager,
     data: Notification
 ):
-    # url = "https://open.larksuite.com/open-apis/bot/v2/hook/0ff11ca5-2201-429f-adb5-d084f55875cf" # test-notif
     # url = "https://open.larksuite.com/open-apis/bot/v2/hook/0a318b33-68ae-4a7a-b7bb-22a3bfc905bc" # official
     url = "https://open.larksuite.com/open-apis/bot/v2/hook/aaa6a791-74df-4c6a-9d4d-216381147ed6"
 
@@ -30,13 +29,13 @@ def send_notification_on_background(
     template_color = "red" if data.is_similar == False else "yellow"
 
     for positive_account in data.accounts:
-        content += f"Client: **{data.plate_number}** [**{positive_account.car_model}** - **{positive_account.client}**]\n"
+        content += f"Client: **{positive_account.plate}** [**{positive_account.car_model}** - **{positive_account.client}**]\n"
 
         client_info += f"\nClient Information:\n- Plate | Sticker: **{positive_account.plate}**\n" \
                     f"- Vehicle: {positive_account.car_model}\n" \
                     f"- Client Name: **{positive_account.client}**\n" \
                     f"- Endorsement Date: {positive_account.endo_date}\n" \
-                    f"- CH Code: {positive_account.ch_code}\n \n\n **Kindly disregard, Thank you!**"
+                    f"- CH Code: {positive_account.ch_code}\n \n\n"
  
         content += client_info
 
@@ -75,9 +74,6 @@ def send_notification_on_background(
 
     body = {"msg_type": "interactive", "card": card_data}
     headers = {"Content-Type": "application/json"}
-
-    print('notif_body', body)
-    
 
     response = requests.post(url=url, json=body, headers=headers)
 
