@@ -1,7 +1,6 @@
 import yaml
 import os
 from models.config.app_configuration import AppConfiguration
-from functools import lru_cache
 
 
 def get_app_configuration( 

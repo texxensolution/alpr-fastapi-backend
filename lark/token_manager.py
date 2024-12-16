@@ -56,6 +56,7 @@ class UserInformationDataResponse(BaseModel):
     name: str
     tenant_key: str
     union_id: str
+    user_id: str
     
 
 class UserInformationResponse(BaseModel):
@@ -70,8 +71,11 @@ class TokenManager:
         self.app_secret = app_secret
         self._cache = {}
 
-    async def get_user_access_token(self, grant_type: str, code: str):
-        KEY = "user_access_token"
+    async def get_user_access_token(
+        self,
+        code: str,
+        grant_type: str = "authorization_code"
+    ):
         app_token_response = await self.get_app_access_token()
 
         headers = {
@@ -83,10 +87,6 @@ class TokenManager:
             "code": code
         }
         
-        if self._is_token_still_valid(KEY):
-            cached_response_model, _ = self._cache[KEY]
-            return cached_response_model
-
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 GET_USER_ACCESS_TOKEN_URL,
@@ -103,11 +103,6 @@ class TokenManager:
                     code=response_model.code,
                     msg=response_model.message
                 )
-            
-            self._cache[KEY] = (
-                response_model,
-                int(time.time()) + response_model.data.expires_in
-            )
 
             return response_model
 
@@ -141,12 +136,6 @@ class TokenManager:
             return response_model
 
     def get_tenant_access_token_sync(self):
-        KEY = 'tenant_access_token_sync'
-
-        if self._is_token_still_valid(KEY):
-            cached_response_model, _ = self._cache[KEY]
-            return cached_response_model
-
         payload = self._common_auth_payload()
 
         with httpx.Client() as client:
@@ -163,19 +152,9 @@ class TokenManager:
                     msg=response_model.msg
                 )
 
-            self._cache[KEY] = (
-                response_model, int(time.time()) + response_model.expire
-            )
-
             return response_model
 
     async def get_app_access_token(self) -> AppTokenResponse:
-        KEY = 'app_access_token'
-
-        if self._is_token_still_valid(KEY):
-            cached_response_model, _ = self._cache[KEY]
-            return cached_response_model
-
         payload = self._common_auth_payload()
 
         async with httpx.AsyncClient() as client:
@@ -184,19 +163,13 @@ class TokenManager:
                 json=payload
             )
 
-            data = response.json()
-            response_model = AppTokenResponse(**data)
+            response_model = AppTokenResponse(**response.json())
 
             if response_model.code != 0:
                 raise LarkBaseHTTPException(
                     response_model.code,
                     response_model.msg
                 )
-
-            self._cache[KEY] = (
-                response_model,
-                int(time.time()) + response_model.expire
-            )
 
             return response_model
 

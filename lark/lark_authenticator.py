@@ -2,12 +2,10 @@ import os
 from .api_request import APIRequest
 from dotenv import load_dotenv,find_dotenv
 import time
-from utilities.retry_decorator import Decorator
 # Find .env file
 load_dotenv(find_dotenv())
 
 
-retry = Decorator()
 
 class LarkAuthenticator(APIRequest):
 
@@ -20,7 +18,6 @@ class LarkAuthenticator(APIRequest):
         self.tenant_access_token = self.get_tenant_access_token()
 
 
-    @retry.retry_on_none
     def get_tenant_access_token(self):
 
         try:
@@ -33,7 +30,6 @@ class LarkAuthenticator(APIRequest):
             return None
 
 
-    @retry.retry_on_none
     def refresh_user_access_token(self):
 
         location = self.token_location

@@ -4,6 +4,7 @@ from models.notification import Notification
 from .send_notification import send_notification_on_background
 from lark.token_manager import TokenManager
 from jobs.notify_group_chat import QueuedPlateDetected, notify_group_chat
+from jobs.notify_group_chat_with_mention import QueuedPlateDetectedWithUnionId, notify_group_chat as notify_gc_with_mention
 
 
 class NotificationQueue:
@@ -30,6 +31,16 @@ class NotificationQueue:
     ):
         self.q.enqueue(
             notify_group_chat,
+            self._token_manager,
+            queued_task
+        )
+        
+    def push_with_mention(
+        self,
+        queued_task: QueuedPlateDetectedWithUnionId
+    ):
+        self.q.enqueue(
+            notify_gc_with_mention,
             self._token_manager,
             queued_task
         )

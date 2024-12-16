@@ -1,7 +1,9 @@
 import os
-import ngrok
+import database.models
 import uvicorn
+from utils.loggers import log_entry
 from loguru import logger
+from sqlalchemy.orm import Session
 from fastapi import FastAPI, Form, File, UploadFile, Depends
 from pydantic import BaseModel
 from utils.account_status import AccountStatus
@@ -13,9 +15,16 @@ from dotenv import load_dotenv
 from lark.token_manager import TokenManager
 from utils.notification_queue import NotificationQueue
 from utils.file_utils import store_file
+from utils.dependencies import get_db
 from contextlib import asynccontextmanager
+from database.models import Base
+from database.database import engine
 from utils.plate_normalizer import normalize_plate
 from api.v2.notification_endpoints import router as notification_v2_router
+from api.accounts import router as accounts_router
+from api.log_router import router as log_router
+from api.user import router as user_router
+from api.v3.scanner import router as scanner_router
 
 load_dotenv()
 
@@ -32,11 +41,15 @@ notification_queue = NotificationQueue(token_manager=token_manager)
 
 APP_PORT=5000
 
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 app.include_router(notification_v2_router)
-
+app.include_router(log_router)
+app.include_router(user_router)
+app.include_router(accounts_router)
+app.include_router(scanner_router)
 
 class LicensePlateStatusResponse(BaseModel):
     plate_number: str
@@ -46,9 +59,13 @@ class LicensePlateStatusResponse(BaseModel):
 
 
 @app.get("/")
-async def hello_world():
+async def hello_world(session: Session = Depends(get_db)):
+    log_entry(
+        session=session,
+        name='Jerome',
+        event_type='PLATE_CHECKING'
+    )
     return { "message": "hello, world!" }
-
 
 
 class CheckPlateExistenceRequest(BaseModel):
@@ -79,8 +96,6 @@ async def check_plate_existence(
             items.append(PlateStatus(plate_number=plate_number, is_tagged=True))
 
     return CheckPlateExistenceResponse(items=items)
-        
-
 
 
 @app.post('/api/license-plate-status', response_model=LicensePlateStatusResponse)

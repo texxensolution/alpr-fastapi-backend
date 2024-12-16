@@ -16,3 +16,8 @@ class QueuedPlateDetected(BaseModel):
     accounts: List[Account]
     file_path: str
     name: str
+
+
+class QueuedPlateDetectedWithUnionId(QueuedPlateDetected):
+    union_id: str
+    user_id: Optional[str] = None

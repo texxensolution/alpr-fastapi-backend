@@ -2,7 +2,6 @@ import os
 from .api_request import APIRequest
 from .lark_authenticator import LarkAuthenticator
 from datetime import datetime
-from utilities.retry_decorator  import Decorator
 from dotenv import load_dotenv,find_dotenv
 import time
 import json
@@ -10,7 +9,6 @@ import json
 # Find .env file
 load_dotenv(find_dotenv())
 
-retry = Decorator()
 
 class BitableManager(APIRequest):
 
@@ -18,7 +16,6 @@ class BitableManager(APIRequest):
         self.bitable_id = os.getenv('BITABLE_ID')
         self.authenticator = authenticator
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def add_rows_to_bitable_batch(self, table_id, records_batch):
         access_token = self._get_user_access_token()
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records/batch_create?user_id_type=user_id"
@@ -29,7 +26,6 @@ class BitableManager(APIRequest):
         payload = {"records": [{"fields": record} for record in records_batch]}
         return self.send_request('POST', url, headers, payload)
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def add_rows_to_bitable(self, table_id, row):
         access_token = self._get_user_access_token()
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records?user_id_type=user_id"
@@ -41,7 +37,6 @@ class BitableManager(APIRequest):
         print(payload)
         return self.send_request('POST', url, headers, payload)
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def get_records(self, table_id, page_size=500, filter=None):
         access_token = self._get_user_access_token()
         page_token = None
@@ -74,7 +69,6 @@ class BitableManager(APIRequest):
         return records
 
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def update_rows_to_bitable_batch(self, table_id, records_batch):
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records/batch_update"
         headers = {
@@ -85,7 +79,6 @@ class BitableManager(APIRequest):
 
         return self.send_request('POST', url, headers, payload)
 
-    @retry.retry(tries=100, delay=15, backoff=2)
     def update_rows_to_bitable(self, table_id, record_id, updated_fields):
 
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records/{record_id}"
@@ -96,7 +89,6 @@ class BitableManager(APIRequest):
         payload = updated_fields
         return self.send_request('PUT', url, headers, payload)
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def delete_record(self, table_id, record_id):
         access_token = self._get_user_access_token()
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records/{record_id}"
@@ -106,7 +98,6 @@ class BitableManager(APIRequest):
         }
         return self.send_request('POST', url, headers)
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def delete_record_batch(self, table_id, records_batch):
 
         url = f"{os.getenv('BITABLE_BASE_URL')}/{self.bitable_id}/tables/{table_id}/records/batch_delete"
@@ -127,14 +118,12 @@ class BitableManager(APIRequest):
             raise  # re-raise the exception so the retry decorator can catch it
 
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def _get_user_access_token(self):
         refresh_token_path = os.getenv('REFRESH_TOKEN_FILE_PATH')
         absolute_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', refresh_token_path)
         with open(absolute_path, 'r') as file:
             return file.readlines()[1].strip()
 
-    @retry.retry(tries=3, delay=10, backoff=2)
     def process_dl_date(self,date_str):
         if not str(date_str).isalpha():
             time = datetime.strptime(str(date_str), "%Y-%m-%d")

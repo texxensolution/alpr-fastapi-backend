@@ -23,6 +23,18 @@ class AccountStatus:
 
         self.__preprocess_dataframe()
 
+
+    def update_account_records(
+        self,
+        dataframe: pl.DataFrame
+    ):
+        if len(dataframe) == 0:
+            raise ValueError("Dataframe is empty!")
+
+        self._account_table = dataframe
+        
+        self.__preprocess_dataframe()
+
     
     def __preprocess_dataframe(self): 
         if self.normalized_column_name not in self._account_table.columns:
@@ -30,15 +42,11 @@ class AccountStatus:
             # for idx, row in enumerate(self._account_table.iter_rows()):
             self._account_table = self._account_table.with_columns(
                 pl.col("PLATE")
-                    .map_elements(lambda plate: normalize_plate(plate))
+                    .map_elements(lambda plate: normalize_plate(plate), return_dtype=str)
                     .alias(self.normalized_column_name)
             )
             self._account_table.write_csv(self.path)
             
-            self._account_table = self._account_table.with_columns(
-                pl.col("ENDO_DATE").str.strptime(pl.Date, fmt="%m/%d/%y")
-            )
-    
     
     def get_account_info_by_plate(self, target_plate: str) -> Account | None:
         matching_rows = self._account_table.filter(
@@ -69,7 +77,7 @@ class AccountStatus:
     ) -> List[Account]:
         similar_accounts_df = self._account_table.with_columns(
             pl.col("PLATE_NUMBER_NORMALIZED")
-                .map_elements(lambda plate: is_similar_plate(target_plate, plate))
+                .map_elements(lambda plate: is_similar_plate(target_plate, plate), return_dtype=bool)
                 .alias("is_similar")
         )
 

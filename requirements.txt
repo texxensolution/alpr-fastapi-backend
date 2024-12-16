@@ -6,3 +6,6 @@ pydantic
 pyyaml
 rapidfuzz
 rq
+sqlalchemy
+psycopg2-binary
+pandas
