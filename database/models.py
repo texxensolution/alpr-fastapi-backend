@@ -153,6 +153,8 @@ class Log(Base):
         default=uuid.uuid4
     )
 
+    scanned_text: Mapped[Optional[str]] = mapped_column(nullable=True)
+
     name: Mapped[str] = mapped_column(
         nullable=False
     )
@@ -176,8 +178,10 @@ class Log(Base):
 
     def __init__(
         self, 
+        scanned_text: str,
         name: str, 
         event_type: Literal['PLATE_CHECKING', 'PLATE_NOTIFICATION']
     ):
         self.name = name
+        self.scanned_text = scanned_text
         self.event_type = event_type

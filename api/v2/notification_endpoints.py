@@ -72,13 +72,14 @@ async def license_plate_check_v2(
     account_status: AccountStatus = Depends(get_account_status),
     session: Session = Depends(get_db)
 ):
+    plate_number = normalize_plate(form.plate)
+
     log_entry(
         session=session,
+        scanned_text=plate_number,
         name=form.name,
         event_type='PLATE_CHECKING'
     )
-
-    plate_number = normalize_plate(form.plate)
 
     if account := account_status.get_account_info_by_plate(plate_number):
         return LicensePlateCheckResponse(
@@ -118,6 +119,7 @@ async def notify_group_chat(
     if account := account_status.get_account_info_by_plate(plate):
         log_entry(
             session=session,
+            scanned_text=plate,
             name=name,
             event_type='POSITIVE_PLATE_NOTIFICATION'
         )
@@ -135,6 +137,7 @@ async def notify_group_chat(
     elif similar_accounts := account_status.get_similar_accounts_by_plate(plate):
         log_entry(
             session=session,
+            scanned_text=plate,
             name=name,
             event_type='FOR_CONFIRMATION_NOTIFICATION'
         )

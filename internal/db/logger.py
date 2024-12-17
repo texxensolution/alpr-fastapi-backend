@@ -125,7 +125,13 @@ def get_stats_for_union_ids(
         """
     )
 
-    result = db.execute(query, {"target_date": target_date, "union_ids": tuple(union_ids)})
+    result = db.execute(
+        query, 
+        {
+            "target_date": target_date, 
+            "union_ids": tuple(union_ids)
+        }
+    )
 
     # print("sql", result)
     rows = result.mappings().fetchall()

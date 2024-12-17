@@ -96,11 +96,6 @@ while True:
             session=db,
             log_date=TARGET_LOG_DATE
         )
-        
-        # if len(union_ids) == 0:
-        #     print("skipping current iteration... waiting for 5secs...")
-        #     time.sleep(5)
-        #     continue
 
         if len(union_ids) > 0:
             # create a payload for inserting data or row in lark base
@@ -152,6 +147,7 @@ while True:
                 update_payload
             )
         )
+        print("Done updating references.")
 
         print("Synchronization ended...")
         print("Wait for 5 secs... \n")
