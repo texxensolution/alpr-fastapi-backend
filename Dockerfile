@@ -1,5 +1,5 @@
 # Use the official Python image as a base
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # # Set environment variables
 # ENV PYTHONDONTWRITEBYTECODE 1  # Prevents Python from writing pyc files
