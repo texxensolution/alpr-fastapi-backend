@@ -4,4 +4,4 @@ app:
   environment: development
 
 datasource:
-  path: 'accounts.csv'
+  path: 'data/accounts.csv'

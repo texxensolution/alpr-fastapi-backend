@@ -45,7 +45,8 @@ class AccountStatus:
                     .map_elements(lambda plate: normalize_plate(plate), return_dtype=str)
                     .alias(self.normalized_column_name)
             )
-            self._account_table.write_csv(self.path)
+
+        self._account_table.write_csv(self.path)
             
     
     def get_account_info_by_plate(self, target_plate: str) -> Account | None:
