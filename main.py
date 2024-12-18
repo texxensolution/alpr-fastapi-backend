@@ -39,7 +39,7 @@ NGROK_EDGE = os.getenv("NGROK_EDGE", "edge:edghts_")
 
 notification_queue = NotificationQueue(token_manager=token_manager)
 
-APP_PORT=5000
+APP_PORT=8000
 
 Base.metadata.create_all(bind=engine)
 
