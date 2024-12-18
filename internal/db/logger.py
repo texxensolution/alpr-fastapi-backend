@@ -11,6 +11,8 @@ from typing import Literal, List, Tuple
 def persist_log_entry(
     scanned_text: str,
     union_id: str,
+    latitude: float,
+    longitude: float,
     event_type: Literal['PLATE_CHECKING', 'POSITIVE_PLATE_NOTIFICATION', 'FOR_CONFIRMATION_NOTIFICATION'],
     db: Session
 ):
@@ -19,6 +21,8 @@ def persist_log_entry(
         scanned_text=scanned_text,
         union_id=union_id,
         event_type=event_type,
+        latitude=latitude,
+        longitude=longitude
     )
     db.add(log_record)
     db.commit()

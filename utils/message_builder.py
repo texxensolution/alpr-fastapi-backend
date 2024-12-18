@@ -86,6 +86,7 @@ def message_builder_with_mention(
         content += f"- CH Code: {positive_account.ch_code}\n\n"
 
     content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
+    content += f"\n 📍 Location (lat, lon): ({data.latitude}, {data.longitude})"
 
     template_data_field = CardTemplateDataField(
         template_id=card_id,

@@ -60,12 +60,7 @@ class LicensePlateStatusResponse(BaseModel):
 
 @app.get("/")
 async def hello_world(session: Session = Depends(get_db)):
-    log_entry(
-        session=session,
-        name='Jerome',
-        event_type='PLATE_CHECKING'
-    )
-    return { "message": "hello, world!" }
+    return { "message": "server is running!" }
 
 
 class CheckPlateExistenceRequest(BaseModel):

@@ -32,12 +32,15 @@ class LicensePlateCheckResponse(BaseModel):
     plate: str
     status: Literal['POSITIVE', 'FOR_CONFIRMATION', 'NOT_FOUND']
     accounts: List[Account]
+    latitude: float
+    longitude: float
 
 
 class CheckPlateRequest(BaseModel):
     plate: str
-    name: Optional[str] = None
     union_id: str
+    latitude: float
+    longitude: float
 
 
 class ScannerResponse(BaseModel):
@@ -67,6 +70,8 @@ async def plate_check(
     persist_log_entry(
         scanned_text=plate_number,
         union_id=lark_account.union_id,
+        latitude=form.latitude,
+        longitude=form.longitude,
         event_type='PLATE_CHECKING',
         db=session
     )
@@ -76,19 +81,25 @@ async def plate_check(
         return LicensePlateCheckResponse(
             plate=plate_number,
             status='POSITIVE',
-            accounts=[account]
+            accounts=[account],
+            latitude=form.latitude,
+            longitude=form.longitude
         )
     elif similar_accounts := account_status.get_similar_accounts_by_plate(plate_number):
         return LicensePlateCheckResponse(
             plate=plate_number,
             status='FOR_CONFIRMATION',
-            accounts=similar_accounts
+            accounts=similar_accounts,
+            latitude=form.latitude,
+            longitude=form.longitude
         )
     else:
         return LicensePlateCheckResponse(
             plate=plate_number,
             status='NOT_FOUND',
-            accounts=[]
+            accounts=[],
+            latitude=form.latitude,
+            longitude=form.longitude
         )
 
 
@@ -96,8 +107,9 @@ async def plate_check(
 async def notify_group_chat(
     plate: str = Form(...),
     image: UploadFile = File(...),
-    name: str = Form(...),
     union_id: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
     account_status: AccountStatus = Depends(get_account_status),
     session: Session = Depends(get_db)
 ):
@@ -125,6 +137,8 @@ async def notify_group_chat(
         persist_log_entry(
             scanned_text=plate,
             union_id=lark_account.union_id,
+            latitude=latitude,
+            longitude=longitude,
             event_type='POSITIVE_PLATE_NOTIFICATION',
             db=session
         )
@@ -133,9 +147,10 @@ async def notify_group_chat(
             file_path=file_path,
             accounts=[account],
             status='POSITIVE',
-            name=name,
             union_id=union_id,
-            user_id=lark_account.user_id
+            user_id=lark_account.user_id,
+            latitude=latitude,
+            longitude=longitude
         )
         notification_queue.push_with_mention(queued_task=queued_task)
 
@@ -150,6 +165,8 @@ async def notify_group_chat(
         persist_log_entry(
             scanned_text=plate,
             union_id=lark_account.union_id,
+            latitude=latitude,
+            longitude=longitude,
             event_type='FOR_CONFIRMATION_NOTIFICATION',
             db=session
         )
@@ -159,9 +176,10 @@ async def notify_group_chat(
             file_path=file_path,
             status='FOR_CONFIRMATION',
             accounts=similar_accounts,
-            name=name,
             union_id=union_id,
-            user_id=lark_account.user_id
+            user_id=lark_account.user_id,
+            latitude=latitude,
+            longitude=longitude
         )
         notification_queue.push_with_mention(queued_task=queued_task)
         

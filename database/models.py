@@ -87,6 +87,9 @@ class LogRecord(Base):
 
     scanned_text: Mapped[Union[str, None]] = mapped_column(nullable=True)
 
+    latitude: Mapped[Optional[float]] = mapped_column(nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(nullable=True)
+
     union_id: Mapped[str]
     
     event_type: Mapped[str]
@@ -107,10 +110,14 @@ class LogRecord(Base):
         self, 
         scanned_text: str,
         union_id: str,
+        latitude: float,
+        longitude: float,
         event_type: Literal['PLATE_CHECKING', 'POSITIVE_PLATE_NOTIFICATION', 'FOR_CONFIRMATION_NOTIFICATION']
     ):
         self.scanned_text = scanned_text
         self.union_id = union_id
+        self.latitude = latitude
+        self.longitude = longitude
         self.event_type = event_type
 
 

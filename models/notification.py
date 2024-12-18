@@ -18,6 +18,12 @@ class QueuedPlateDetected(BaseModel):
     name: str
 
 
-class QueuedPlateDetectedWithUnionId(QueuedPlateDetected):
+class QueuedPlateDetectedWithUnionId(BaseModel):
+    plate_number: str
+    status: Literal['POSITIVE', 'FOR_CONFIRMATION', 'NOT_FOUND']
+    accounts: List[Account]
+    file_path: str
     union_id: str
     user_id: Optional[str] = None
+    latitude: float
+    longitude: float

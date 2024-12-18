@@ -7,6 +7,5 @@ def is_similar_plate(
     max_distance: int = 1
 ) -> bool:
     distance = Levenshtein.distance(plate1, plate2)
-    print(distance)
 
     return distance <= max_distance
