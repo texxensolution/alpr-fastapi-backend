@@ -9,3 +9,4 @@ rq
 sqlalchemy
 psycopg2-binary
 pandas
+loguru
