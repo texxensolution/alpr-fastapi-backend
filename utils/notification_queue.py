@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from redis import Redis
 from rq import Queue
 from models.notification import Notification
@@ -12,7 +14,15 @@ class NotificationQueue:
         self, 
         token_manager: TokenManager
     ):
-        self.q = Queue(connection=Redis())
+        load_dotenv()
+        redis_host = os.getenv('REDIS_HOST', 'localhost')
+        redis_port = os.getenv('REDIS_PORT', 6379)
+
+        self.q = Queue(connection=Redis(
+            host=redis_host,
+            port=redis_port
+
+        ))
         self._token_manager = token_manager
 
     def push(

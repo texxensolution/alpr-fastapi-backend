@@ -46,7 +46,7 @@ class AccountStatus:
                     .alias(self.normalized_column_name)
             )
 
-        self._account_table.write_csv(self.path)
+            self._account_table.write_csv(self.path)
             
     
     def get_account_info_by_plate(self, target_plate: str) -> Account | None:
