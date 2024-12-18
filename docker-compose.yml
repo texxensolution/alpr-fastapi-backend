@@ -1,20 +1,20 @@
-version: "3.9"  # specify the version of docker-compose
+version: "3.9"
 
 services:
   # PostgreSQL service
   db:
-    image: postgres:13  # PostgreSQL version 13
+    image: postgres:13
     container_name: postgres-db
-    env_file:
+    env_file: 
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}  # The default PostgreSQL username
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # The default PostgreSQL password
-      POSTGRES_DB: ${POSTGRES_DB} # The default database name
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persists data between container restarts
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  # Exposes PostgreSQL on port 5432
+      - "5432:5432"
     networks:
       - app-network
 
@@ -22,53 +22,52 @@ services:
   app:
     build: .
     container_name: fastapi-app
-    env_file:
+    env_file: 
       - .env
     environment:
-      DB_HOST: db  # The PostgreSQL container name (defined above) is used to reference the database
-      DB_PORT: 5432  # PostgreSQL default port
-      DB_USER: ${POSTGRES_USER} # The PostgreSQL user
-      DB_PASSWORD: ${POSTGRES_PASSWORD} # The PostgreSQL password
-      DB_NAME: ${POSTGRES_DB} # The PostgreSQL database name
-      REDIS_HOST: redis  # Redis service name for communication
-      REDIS_PORT: 6379  # Redis default port
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
     ports:
-      - "8000:8000"  # Exposes FastAPI on port 8000
+      - "8000:8000"
     depends_on:
-      - db  # Ensures FastAPI starts after the database is ready
-      - redis  # Ensures FastAPI starts after Redis is ready
+      - db
+      - redis
     volumes:
-      - uploads_data:/app/uploads  # Mounts the host directory to /uploads in the container for file persistence
+      - uploads_data:/app/uploads  # Mount the uploads_data volume
     networks:
       - app-network
 
   # Redis service
   redis:
-    image: redis:6  # Redis version 6
+    image: redis:6
     container_name: redis
     ports:
-      - "6379:6379"  # Exposes Redis on port 6379
+      - "6379:6379"
     networks:
       - app-network
 
   # RQ Worker service
   rq-worker:
-    image: python:3.10  # Use a Python base image
+    build: .
     container_name: rq-worker
-    command: ["rq", "worker", "default"]  # Start an RQ worker to listen on the 'default' queue
+    command: ["rq", "worker", "default"]
     volumes:
-      - .:/app  # Mount the current directory (with your FastAPI app) to the container
+      - .:/app
+      - uploads_data:/app/uploads  # Mount the uploads_data volume for access
     environment:
-      REDIS_URL: redis://redis:6379  # Redis URL for the worker to connect to
+      REDIS_URL: redis://redis:6379
     depends_on:
-      - redis  # Make sure Redis is ready before starting the worker
+      - redis
     networks:
       - app-network
 
 volumes:
-  postgres_data:  # Named volume for PostgreSQL data storage
-  uploads_data:  # Named volume for FastAPI file uploads persistence
+  postgres_data:  # Persistent storage for PostgreSQL
+  uploads_data:   # Shared volume for FastAPI and RQ worker
 
 networks:
-  app-network:  # Custom network for inter-service communication
-
+  app-network:  # Shared network for inter-service communication
