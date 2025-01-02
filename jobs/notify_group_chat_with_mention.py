@@ -4,6 +4,7 @@ from utils.message_builder import message_builder_with_mention
 from utils.send_message_to_gc import send_message_to_gc
 from utils.get_group_members import get_group_members
 from utils.buzz_this_message import buzz_this_message
+from utils.file_utils import delete_file
 from models.notification import QueuedPlateDetectedWithUnionId
 from lark.token_manager import TokenManager
 
@@ -42,11 +43,14 @@ def notify_group_chat(
 
         group_member_union_ids = [member.member_id for member in members.data.items]
 
-        # buzz_this_message(
-        #     tenant_token=tenant_token,
-        #     message_id=message_sent_response.data.message_id,
-        #     group_members_union_id=group_member_union_ids
-        # )
+        buzz_this_message(
+            tenant_token=tenant_token,
+            message_id=message_sent_response.data.message_id,
+            group_members_union_id=group_member_union_ids
+        )
+        
+        print(f"deleting file: {data.file_path}...")
+        delete_file(data.file_path)
     print("Job successfully processed.")
 
 

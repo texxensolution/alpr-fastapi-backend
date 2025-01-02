@@ -4,6 +4,7 @@ from utils.message_builder import message_builder
 from utils.send_message_to_gc import send_message_to_gc
 from utils.get_group_members import get_group_members
 from utils.buzz_this_message import buzz_this_message
+from utils.file_utils import delete_file
 from models.notification import QueuedPlateDetected
 from lark.token_manager import TokenManager
 
@@ -45,6 +46,9 @@ def notify_group_chat(
             message_id=message_sent_response.data.message_id,
             group_members_union_id=group_member_union_ids
         )
+
+        delete_file(data.file_path)
+
     print("Job successfully processed.")
 
 

@@ -1,6 +1,9 @@
 import os
 import database.models
 import uvicorn
+import asyncio
+from datetime import datetime
+from contextlib import asynccontextmanager
 from utils.loggers import log_entry
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -25,6 +28,9 @@ from api.accounts import router as accounts_router
 from api.log_router import router as log_router
 from api.user import router as user_router
 from api.v3.scanner import router as scanner_router
+from internal.db.monitoring import store_system_usage
+from logs_synchronizer_v3 import logs_lark_sync
+from lark.base_manager import BaseManager
 
 load_dotenv()
 
@@ -36,20 +42,48 @@ token_manager = TokenManager(
 
 NGROK_AUTHTOKEN = os.getenv("NGROK_AUTHTOKEN", "")
 NGROK_EDGE = os.getenv("NGROK_EDGE", "edge:edghts_")
+BASE_APP_TOKEN = os.getenv('BASE_LOGS_APP_TOKEN')
 
 notification_queue = NotificationQueue(token_manager=token_manager)
 
-APP_PORT=8000
+APP_PORT=os.getenv('APP_PORT', 8000)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+base_manager = BaseManager(
+    app_token=BASE_APP_TOKEN,
+    token_manager=token_manager
+)
+
+async def run_system_monitoring(db: Session):
+    while True:
+        print(f"Storing system usage at {datetime.now()}...")
+        store_system_usage(db)
+        await asyncio.sleep(60)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db = next(get_db())
+    try:
+        print("Starting system monitoring...")
+        system_usage_task = asyncio.create_task(run_system_monitoring(db))
+        asyncio.create_task(logs_lark_sync(db, base_manager=base_manager))
+        print("Started system monitoring.")
+        yield
+    finally:
+        print("Closing ")
+        print("Shutting down server...")
+
+app = FastAPI(lifespan=lifespan)
+
 
 app.include_router(notification_v2_router)
 app.include_router(log_router)
 app.include_router(user_router)
 app.include_router(accounts_router)
 app.include_router(scanner_router)
+
 
 class LicensePlateStatusResponse(BaseModel):
     plate_number: str
@@ -75,7 +109,6 @@ class PlateStatus(BaseModel):
 class CheckPlateExistenceResponse(BaseModel):
     items: List[PlateStatus]
 
-    
 
 @app.post("/api/check-plate-status", response_model=CheckPlateExistenceResponse)
 async def check_plate_existence(
@@ -148,4 +181,4 @@ async def license_plate_status(
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=APP_PORT, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=int(APP_PORT), reload=True)

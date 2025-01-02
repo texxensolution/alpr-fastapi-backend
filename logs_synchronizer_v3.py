@@ -1,6 +1,7 @@
 import os
 import time
 import asyncio
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from datetime import date, datetime
 from lark.token_manager import TokenManager
@@ -21,10 +22,6 @@ LOGS_TABLE_ID = "tblUzqg6jJa48WnI" # V3
 
 token_manager = TokenManager(app_id=CHOPPER_APP_ID, app_secret=CHOPPER_APP_SECRET)
 
-base_manager = BaseManager(
-    app_token=BASE_APP_TOKEN,
-    token_manager=token_manager
-)
 
 def get_date_timestamp(target_date: date) -> int:
     # Convert today's date to a datetime object (with time set to 00:00:00)
@@ -33,6 +30,7 @@ def get_date_timestamp(target_date: date) -> int:
     # Get the integer timestamp (seconds since Unix epoch)
     timestamp = int(today_datetime.timestamp()) * 1000
     return timestamp
+
 
 def create_reference_map(
     references: List[Tuple[str, str]]
@@ -86,28 +84,36 @@ def stats_update_payload(
     }
     
 
-while True:
-    print("Synchronization starting...")
-
-    with SessionLocal() as db:
+async def logs_lark_sync(
+    db: Session,
+    base_manager: BaseManager
+):
+    while True:
         TARGET_LOG_DATE = date.today()
+
+        syncing_timestamp = datetime.now()
+        # print("lark synchronization starting...")
+
+        # print(f"Syncing timestamp: {datetime.now()}")
 
         union_ids = get_ids_without_lark_ref_for_today(
             session=db,
             log_date=TARGET_LOG_DATE
         )
+        
+        total_union_ids = len(union_ids)
 
-        if len(union_ids) > 0:
+        if total_union_ids > 0:
             # create a payload for inserting data or row in lark base
             data = create_counter_payload_for_union_ids(
                 union_ids=union_ids,
                 target_date=TARGET_LOG_DATE
             )
 
-            response = asyncio.run(base_manager.create_records(
+            response = await base_manager.create_records(
                 table_id=LOGS_TABLE_ID,
                 data=data
-            ))
+            )
 
             if response.code == 0:
                 for reference in response.data.records:
@@ -120,39 +126,42 @@ while True:
                     db.add(reference)
                 db.commit()
 
-        print("Getting all references for synchronization...")
+        # print("Getting all references for synchronization...")
         references = get_references_by_target_date(
             target_date=TARGET_LOG_DATE,
             db=db
         )
+        
+        no_of_references = len(references)
 
         reference_lookup, union_ids = create_reference_map(references)
-        print("Total Users:", len(references))
 
-        stats = get_stats_for_union_ids(
-            union_ids=union_ids,
-            target_date=TARGET_LOG_DATE,
-            db=db
-        )
+        if len(union_ids) > 0:
+            stats = get_stats_for_union_ids(
+                union_ids=union_ids,
+                target_date=TARGET_LOG_DATE,
+                db=db
+            )
 
-        update_payload = stats_update_payload(
-            stats,
-            reference_lookup 
-        )
-        print(update_payload)
-        print("Updating references on lark...")
-        asyncio.run(
-            base_manager.update_records(
+            update_payload = stats_update_payload(
+                stats,
+                reference_lookup 
+            )
+            print(update_payload)
+            # print("Updating references on lark...")
+            await base_manager.update_records(
                 LOGS_TABLE_ID,
                 update_payload
             )
-        )
-        print("Done updating references.")
+            print(f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", end="")
+            # print("Done updating references.")
+            # print("Synchronization ended...")
+        else:
+            print("No references to update.", end="")
 
-        print("Synchronization ended...")
-        print("Wait for 5 secs... \n")
-
-        time.sleep(5)
+        print(" Wait for 5 secs... \n", end="")
+        db.close()
+        await asyncio.sleep(5)
 
         
         

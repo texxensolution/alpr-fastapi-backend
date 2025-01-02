@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, DateTime, Column, Integer, String, text, Date, func
+from sqlalchemy import TIMESTAMP, DateTime, Column, Integer, String, text, Date, func, JSON
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.schema import PrimaryKeyConstraint
 from datetime import date, datetime
@@ -121,7 +121,6 @@ class LogRecord(Base):
         self.event_type = event_type
 
 
-
 class LarkAccount(Base):
     __tablename__ = 'lark_accounts'
     union_id: Mapped[str] = mapped_column(
@@ -146,9 +145,6 @@ class LarkAccount(Base):
         self.name = name
         self.current_device = current_device
 
-
-
-    
 
 class Log(Base):
     __tablename__ = 'logs'
@@ -192,3 +188,21 @@ class Log(Base):
         self.name = name
         self.scanned_text = scanned_text
         self.event_type = event_type
+
+
+class SystemUsageLog(Base):
+    __tablename__ = 'system_usage_logs'
+
+    id: Mapped[str] = mapped_column(default=uuid.uuid4, primary_key=True)
+
+    _metadata: Mapped[dict] = mapped_column(JSON)
+
+    timestamp: Mapped[datetime] = mapped_column(default=datetime.now, nullable=False)
+
+    log_date: Mapped[date] = mapped_column(default=date.today, nullable=False)
+
+    def __init__(
+        self, 
+        metadata: dict
+    ):
+        self._metadata = metadata

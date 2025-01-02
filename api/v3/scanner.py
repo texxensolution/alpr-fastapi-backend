@@ -42,10 +42,41 @@ class CheckPlateRequest(BaseModel):
     latitude: float
     longitude: float
 
-
 class ScannerResponse(BaseModel):
     message: str
     type: str
+
+
+# class LicensePlateCheckBatchRequest(BaseModel):
+#     plates: List[str]
+#     union_id: str
+#     latitude: float
+#     longitude: float
+
+
+# class LicensePlateResult(BaseModel):
+#     plate: str
+#     status: Literal['POSITIVE', 'FOR_CONFIRMATION', 'NOT_FOUND'],
+#     accounts: List[Account]
+
+
+# class LicensePlateCheckBatchResponse(BaseModel):
+#     results: List[LicensePlateResult]
+#     latitude: float
+#     longitude: float
+#     # accounts: List[Account]
+
+
+# @router.post('/batch/plate/check', response_model=LicensePlateCheckBatchResponse)
+# async def batch_license_plate_check(
+#     form: LicensePlateCheckBatchRequest,
+#     account_status: AccountStatus = Depends(get_account_status),
+#     session: Session = Depends(get_db)
+# ):
+    
+#     pass
+
+    
 
 @router.post('/plate/check', response_model=LicensePlateCheckResponse)
 async def plate_check(
