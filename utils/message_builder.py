@@ -18,7 +18,6 @@ def message_builder(
     data: QueuedPlateDetected,
     status: Literal['POSITIVE', 'FOR_CONFIRMATION']
 ):
-
     if status == 'POSITIVE':
         is_positive = True
         card_id = "ctp_AAjkOym6PwjJ" 
@@ -28,7 +27,6 @@ def message_builder(
 
     title = f"{status} PLATE | STICKER DETECTED!"
     content = f"Detected: **{data.plate_number}**\n"
-    # template_color = "red" if data.is_similar == False else "yellow"
     
     if not is_positive:
         content += "\n"

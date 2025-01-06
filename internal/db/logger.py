@@ -118,8 +118,8 @@ def get_stats_for_union_ids(
         """
         SELECT count(union_id) AS total_requests, 
         COUNT (DISTINCT scanned_text) as unique_scanned_plate,
-        COUNT (DISTINCT CASE WHEN log_records.event_type = 'POSITIVE_PLATE_NOTIFICATION' THEN 1 END) AS positive_count,
-        COUNT (DISTINCT CASE WHEN log_records.event_type = 'FOR_CONFIRMATION_NOTIFICATION' THEN 1 END) AS for_confirmation_count,
+        COUNT (DISTINCT CASE WHEN log_records.event_type = 'POSITIVE_PLATE_NOTIFICATION' THEN log_records.id END) AS positive_count,
+        COUNT (DISTINCT CASE WHEN log_records.event_type = 'FOR_CONFIRMATION_NOTIFICATION' THEN log_records.id END) AS for_confirmation_count,
         union_id, 
         log_records.log_date
         FROM log_records

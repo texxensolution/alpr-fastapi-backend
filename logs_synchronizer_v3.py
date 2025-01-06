@@ -92,9 +92,6 @@ async def logs_lark_sync(
         TARGET_LOG_DATE = date.today()
 
         syncing_timestamp = datetime.now()
-        # print("lark synchronization starting...")
-
-        # print(f"Syncing timestamp: {datetime.now()}")
 
         union_ids = get_ids_without_lark_ref_for_today(
             session=db,
@@ -126,7 +123,6 @@ async def logs_lark_sync(
                     db.add(reference)
                 db.commit()
 
-        # print("Getting all references for synchronization...")
         references = get_references_by_target_date(
             target_date=TARGET_LOG_DATE,
             db=db
@@ -147,15 +143,12 @@ async def logs_lark_sync(
                 stats,
                 reference_lookup 
             )
-            print(update_payload)
-            # print("Updating references on lark...")
+
             await base_manager.update_records(
                 LOGS_TABLE_ID,
                 update_payload
             )
             print(f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", end="")
-            # print("Done updating references.")
-            # print("Synchronization ended...")
         else:
             print("No references to update.", end="")
 
