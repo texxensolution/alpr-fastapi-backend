@@ -17,6 +17,7 @@ services:
       - "5432:5432"
     networks:
       - app-network
+    restart: always  # Automatically restart the service
 
   # FastAPI service
   app:
@@ -40,6 +41,7 @@ services:
       - uploads_data:/app/uploads  # Mount the uploads_data volume
     networks:
       - app-network
+    restart: always  # Automatically restart the service
 
   # Redis service
   redis:
@@ -49,6 +51,7 @@ services:
       - "6379:6379"
     networks:
       - app-network
+    restart: always  # Automatically restart the service
 
   # RQ Worker service
   rq-worker:
@@ -64,6 +67,7 @@ services:
       - redis
     networks:
       - app-network
+    restart: always  # Automatically restart the service
 
 volumes:
   postgres_data:  # Persistent storage for PostgreSQL
