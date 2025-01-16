@@ -70,7 +70,7 @@ def stats_update_payload(
     lookup_table: dict
 ):
     return {
-        "records":[
+        "records": [
             {
                 "record_id": lookup_table[stat.union_id],
                 "fields": {
@@ -89,72 +89,79 @@ async def logs_lark_sync(
     base_manager: BaseManager
 ):
     while True:
-        TARGET_LOG_DATE = date.today()
+        try:
+            TARGET_LOG_DATE = date.today()
 
-        syncing_timestamp = datetime.now()
+            syncing_timestamp = datetime.now()
 
-        union_ids = get_ids_without_lark_ref_for_today(
-            session=db,
-            log_date=TARGET_LOG_DATE
-        )
-        
-        total_union_ids = len(union_ids)
-
-        if total_union_ids > 0:
-            # create a payload for inserting data or row in lark base
-            data = create_counter_payload_for_union_ids(
-                union_ids=union_ids,
-                target_date=TARGET_LOG_DATE
+            union_ids = get_ids_without_lark_ref_for_today(
+                session=db,
+                log_date=TARGET_LOG_DATE
             )
+            
+            total_union_ids = len(union_ids)
 
-            response = await base_manager.create_records(
-                table_id=LOGS_TABLE_ID,
-                data=data
-            )
+            if total_union_ids > 0:
+                # create a payload for inserting data or row in lark base
+                data = create_counter_payload_for_union_ids(
+                    union_ids=union_ids,
+                    target_date=TARGET_LOG_DATE
+                )
 
-            if response.code == 0:
-                for reference in response.data.records:
-                    field_agent_id = reference['fields']['Field Agent'][0]['id']
-                    reference = LarkHistoryReference(
-                        union_id=field_agent_id,
-                        log_date=TARGET_LOG_DATE,
-                        lark_record_id=reference['record_id']
-                    )
-                    db.add(reference)
-                db.commit()
+                response = await base_manager.create_records(
+                    table_id=LOGS_TABLE_ID,
+                    data=data
+                )
 
-        references = get_references_by_target_date(
-            target_date=TARGET_LOG_DATE,
-            db=db
-        )
-        
-        no_of_references = len(references)
+                if response.code == 0:
+                    for reference in response.data.records:
+                        field_agent_id = reference['fields']['Field Agent'][0]['id']
+                        reference = LarkHistoryReference(
+                            union_id=field_agent_id,
+                            log_date=TARGET_LOG_DATE,
+                            lark_record_id=reference['record_id']
+                        )
+                        db.add(reference)
+                    db.commit()
 
-        reference_lookup, union_ids = create_reference_map(references)
-
-        if len(union_ids) > 0:
-            stats = get_stats_for_union_ids(
-                union_ids=union_ids,
+            references = get_references_by_target_date(
                 target_date=TARGET_LOG_DATE,
                 db=db
             )
+            
+            no_of_references = len(references)
 
-            update_payload = stats_update_payload(
-                stats,
-                reference_lookup 
-            )
+            reference_lookup, union_ids = create_reference_map(references)
 
-            await base_manager.update_records(
-                LOGS_TABLE_ID,
-                update_payload
-            )
-            print(f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", end="")
-        else:
-            print("No references to update.", end="")
+            if len(union_ids) > 0:
+                stats = get_stats_for_union_ids(
+                    union_ids=union_ids,
+                    target_date=TARGET_LOG_DATE,
+                    db=db
+                )
 
-        print(" Wait for 5 secs... \n", end="")
-        db.close()
-        await asyncio.sleep(5)
+                update_payload = stats_update_payload(
+                    stats,
+                    reference_lookup 
+                )
+
+                await base_manager.update_records(
+                    LOGS_TABLE_ID,
+                    update_payload
+                )
+                print(
+                    f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", 
+                    end=""
+                )
+            else:
+                print("No references to update.", end="")
+
+            print(" Wait for 5 secs... \n", end="")
+            db.close()
+        except Exception as e:
+            print("error: ", e)
+        finally:
+            await asyncio.sleep(5)
 
         
         

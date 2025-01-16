@@ -67,11 +67,20 @@ async def lifespan(app: FastAPI):
     db = next(get_db())
     try:
         print("Starting system monitoring...")
-        system_usage_task = asyncio.create_task(run_system_monitoring(db))
-        asyncio.create_task(logs_lark_sync(db, base_manager=base_manager))
+        system_monitoring = asyncio.create_task(
+            run_system_monitoring(db)
+        )
+        logs_sync = asyncio.create_task(
+            logs_lark_sync(
+                db,
+                base_manager=base_manager
+            )
+        )
         print("Started system monitoring.")
         yield
     finally:
+        logs_sync.cancel()
+        system_monitoring.cancel()
         print("Closing ")
         print("Shutting down server...")
 
@@ -94,7 +103,7 @@ class LicensePlateStatusResponse(BaseModel):
 
 @app.get("/")
 async def hello_world(session: Session = Depends(get_db)):
-    return { "message": "server is running!" }
+    return {"message": "server is running!"}
 
 
 class CheckPlateExistenceRequest(BaseModel):
@@ -110,7 +119,10 @@ class CheckPlateExistenceResponse(BaseModel):
     items: List[PlateStatus]
 
 
-@app.post("/api/check-plate-status", response_model=CheckPlateExistenceResponse)
+@app.post(
+    "/api/check-plate-status",
+    response_model=CheckPlateExistenceResponse
+)
 async def check_plate_existence(
     form: CheckPlateExistenceRequest,
     account_status: AccountStatus = Depends(get_account_status)
@@ -118,15 +130,28 @@ async def check_plate_existence(
     items: List[PlateStatus] = []
 
     for plate_number in form.plate_numbers:
-        if account := account_status.get_account_info_by_plate(plate_number) and len(plate_number) >= 4:
-            items.append(PlateStatus(plate_number=plate_number, is_tagged=True))
-        elif similar_accounts := account_status.get_similar_accounts_by_plate(plate_number) and len(plate_number) >= 4:
-            items.append(PlateStatus(plate_number=plate_number, is_tagged=True))
+        if (
+            account_status.get_account_info_by_plate(plate_number)
+            and len(plate_number) >= 4
+        ):
+            items.append(
+                PlateStatus(plate_number=plate_number, is_tagged=True)
+            )
+        elif (
+            account_status.get_similar_accounts_by_plate(plate_number)
+            and len(plate_number) >= 4
+        ):
+            items.append(
+                PlateStatus(plate_number=plate_number, is_tagged=True)
+            )
 
     return CheckPlateExistenceResponse(items=items)
 
 
-@app.post('/api/license-plate-status', response_model=LicensePlateStatusResponse)
+@app.post(
+    '/api/license-plate-status',
+    response_model=LicensePlateStatusResponse
+)
 async def license_plate_status(
     plate_number: str = Form(...),
     image: UploadFile = File(...),
@@ -153,7 +178,9 @@ async def license_plate_status(
             accounts=[account]
         )
 
-    elif similar_accounts := account_status.get_similar_accounts_by_plate(plate_number):
+    elif similar_accounts := (
+        account_status.get_similar_accounts_by_plate(plate_number)
+    ):
         file_path = store_file(image)
 
         notification = Notification(
