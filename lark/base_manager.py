@@ -1,10 +1,9 @@
 import httpx
-import json
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional
 from pydantic import BaseModel
 from .token_manager import TokenManager
 from typing import Literal
-from exceptions.lark_http_exception import LarkBaseHTTPException
+from .lark_http_exception import LarkBaseHTTPException
 
 GET_RECORDS_URL = "https://open.larksuite.com/open-apis/bitable/v1/apps/{app_token}/tables/{app_table}/records/{record_id}"
 LIST_RECORDS_URL = "https://open.larksuite.com/open-apis/bitable/v1/apps/{app_token}/tables/{app_table}/records"

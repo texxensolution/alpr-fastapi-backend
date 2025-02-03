@@ -1,16 +1,18 @@
 import os
-import time
 import asyncio
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from datetime import date, datetime
 from lark.token_manager import TokenManager
 from lark.base_manager import BaseManager
-from database.database import SessionLocal
-from database.models import LarkHistoryReference
-from internal.db.logger import get_ids_without_lark_ref_for_today, get_references_by_target_date, get_stats_for_union_ids, StatisticsQueryResult
+from src.core.models import LarkHistoryReference
+from src.db.logger import (
+    get_ids_without_lark_ref_for_today,
+    get_references_by_target_date,
+    get_stats_for_union_ids,
+    StatisticsQueryResult
+)
 from typing import List, Tuple
-from loguru import logger
 
 
 load_dotenv()
@@ -20,7 +22,10 @@ CHOPPER_APP_SECRET = os.getenv('CHOPPER_APP_SECRET')
 BASE_APP_TOKEN = os.getenv('BASE_LOGS_APP_TOKEN')
 LOGS_TABLE_ID = "tblUzqg6jJa48WnI" # V3
 
-token_manager = TokenManager(app_id=CHOPPER_APP_ID, app_secret=CHOPPER_APP_SECRET)
+token_manager = TokenManager(
+    app_id=CHOPPER_APP_ID,
+    app_secret=CHOPPER_APP_SECRET
+)
 
 
 def get_date_timestamp(target_date: date) -> int:
