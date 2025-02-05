@@ -73,6 +73,7 @@ services:
 volumes:
   postgres_data:  # Persistent storage for PostgreSQL
   uploads_data:   # Shared volume for FastAPI and RQ worker
+  data:
 
 networks:
   app-network:  # Shared network for inter-service communication
