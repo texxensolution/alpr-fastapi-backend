@@ -39,6 +39,7 @@ services:
       - redis
     volumes:
       - uploads_data:/app/uploads  # Mount the uploads_data volume
+      - data:/app/data
     networks:
       - app-network
     restart: always  # Automatically restart the service

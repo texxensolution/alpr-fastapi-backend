@@ -38,4 +38,20 @@ async def update_accounts(
         records_size=len(df)   
     )
 
-    
+
+class AccountInfo(BaseModel):
+    file_path: str
+    endorsement_size: int
+
+
+@router.get('/accounts/info', response_model=AccountInfo)
+async def get_accounts_info():
+    accounts_path = 'data/accounts.csv'
+
+    df = pl.read_csv(accounts_path)
+
+    return AccountInfo(
+        file_path=accounts_path,
+        endorsement_size=len(df)
+    )
+
