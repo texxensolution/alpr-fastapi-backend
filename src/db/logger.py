@@ -7,13 +7,14 @@ from datetime import date
 from pydantic import BaseModel
 from typing import Literal, List, Tuple
 
+EventType = Literal['PLATE_CHECKING', 'POSITIVE_PLATE_NOTIFICATION', 'FOR_CONFIRMATION_NOTIFICATION']
 
 def persist_log_entry(
     scanned_text: str,
     union_id: str,
     latitude: float,
     longitude: float,
-    event_type: Literal['PLATE_CHECKING', 'POSITIVE_PLATE_NOTIFICATION', 'FOR_CONFIRMATION_NOTIFICATION'],
+    event_type: EventType,
     db: Session
 ):
     

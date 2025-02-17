@@ -1,10 +1,9 @@
 import os
 import uvicorn
 import asyncio
-from datetime import datetime
 from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from dotenv import load_dotenv
 from lark.token_manager import TokenManager
 # from src.core.notification_queue import NotificationQueue
@@ -14,7 +13,11 @@ from src.core.database import engine
 from src.api.v1.accounts import router as accounts_router
 from src.api.v1.log_router import router as log_router
 from src.api.v1.user import router as user_router
+from src.api.v4.auth import router as user_v4_router
 from src.api.v3.scanner import router as scanner_router
+from src.api.v4.scanner import router as scanner_v4_router
+from src.api.v3.status import router as users_status_router
+from src.ws.status import router as ws_status_router
 from src.db.monitoring import store_system_usage
 from logs_synchronizer_v3 import logs_lark_sync
 from lark.base_manager import BaseManager
@@ -36,11 +39,13 @@ base_manager = BaseManager(
     token_manager=token_manager
 )
 
+
 async def run_system_monitoring(db: Session):
     while True:
-        print(f"Storing system usage at {datetime.now()}...")
+        # print(f"Storing system usage at {datetime.now()}...")
         store_system_usage(db)
         await asyncio.sleep(60)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -64,16 +69,21 @@ async def lifespan(app: FastAPI):
         print("Closing ")
         print("Shutting down server...")
 
+
 app = FastAPI(lifespan=lifespan)
+
 app.include_router(log_router)
 app.include_router(user_router)
 app.include_router(accounts_router)
 app.include_router(scanner_router)
+app.include_router(ws_status_router)
+app.include_router(users_status_router)
+app.include_router(user_v4_router)
+app.include_router(scanner_v4_router)
+
 
 @app.get("/")
-async def healthcheck(
-    session: Session = Depends(get_db)
-):
+async def healthcheck():
     return {"message": "server is running!"}
 
 if __name__ == "__main__":

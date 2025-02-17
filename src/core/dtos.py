@@ -1,4 +1,5 @@
 from typing import Optional, List, Literal
+from enum import Enum
 from pydantic import BaseModel, Field
 
 
@@ -77,3 +78,18 @@ class CardTemplateDataField(BaseModel):
 class CardTemplatePayload(BaseModel):
     data: CardTemplateDataField
     type: Literal['template'] = 'template'
+
+
+class StatusManagerDTO(BaseModel):
+    name: str
+    union_id: str
+
+
+TokenUserType = Literal['internal', 'external']
+TokenStatusType = Literal['success', 'error', 'invalid token']
+
+
+class DetectedType(Enum):
+    POSITIVE_PLATE_NOTIFICATION = 'POSITIVE_PLATE_NOTIFICATION'
+    FOR_CONFIRMATION_NOTIFICATION = 'FOR_CONFIRMATION_NOTIFICATION'
+    PLATE_CHECKING = 'PLATE_CHECKING'

@@ -96,6 +96,8 @@ class AccountStatus:
             ) for row in top_3_accounts_rows
         ]
 
+        top_3_accounts = top_3_accounts[:3]
+
         return [
             Account(
                 plate=similar_account["PLATE"],

@@ -14,3 +14,5 @@ requests
 psutil
 pydantic-settings
 aiofiles
+pyjwt
+passlib[bcrypt]

@@ -26,7 +26,9 @@ async def get_user(
     db: Session = Depends(get_db)
 ):
     try:
-        user_access_token = (await token_manager.get_user_access_token(code)).data.access_token
+        user_access_token = (
+            await token_manager.get_user_access_token(code)
+        ).data.access_token
 
         user_information = (await token_manager.get_user_information(user_access_token)).data
 

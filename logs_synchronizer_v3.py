@@ -97,8 +97,6 @@ async def logs_lark_sync(
         try:
             TARGET_LOG_DATE = date.today()
 
-            syncing_timestamp = datetime.now()
-
             union_ids = get_ids_without_lark_ref_for_today(
                 session=db,
                 log_date=TARGET_LOG_DATE
@@ -134,7 +132,7 @@ async def logs_lark_sync(
                 db=db
             )
             
-            no_of_references = len(references)
+            # no_of_references = len(references)
 
             reference_lookup, union_ids = create_reference_map(references)
 
@@ -154,14 +152,14 @@ async def logs_lark_sync(
                     LOGS_TABLE_ID,
                     update_payload
                 )
-                print(
-                    f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", 
-                    end=""
-                )
-            else:
-                print("No references to update.", end="")
+                # print(
+                #     f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", 
+                #     end=""
+                # )
+            # else:
+            #     print("No references to update.", end="")
 
-            print(" Wait for 5 secs... \n", end="")
+            # print(" Wait for 5 secs... \n", end="")
             db.close()
         except Exception as e:
             print("error: ", e)
