@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     BASE_LOGS_APP_TOKEN: str
     MAIN_GC_ID: str
     LOGS_TABLE_ID: str
+    NOTIFY_WEB_APP_URL: str
 
     # Redis
     REDIS_HOST: str
