@@ -6,7 +6,7 @@ import base64
 from src.lark.lark import Lark
 from src.lark.messenger import SendMessagePayload
 from src.core.dtos import Detection, CardTemplateDataField, CardTemplatePayload 
-
+from src.core.config import settings
 
 class LarkNotification:
     def __init__(
@@ -80,7 +80,7 @@ class LarkNotification:
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                url="https://5000-01jk4y1hmqe7mqtgqaz867xtrs.cloudspaces.litng.ai/api/detections",
+                url=settings.NOTIFY_WEB_APP_URL,
                 json=_data
             )
 
