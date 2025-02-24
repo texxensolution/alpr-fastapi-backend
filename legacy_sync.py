@@ -178,6 +178,9 @@ async def logs_lark_sync(
         finally:
             await asyncio.sleep(5)
 
+
+async def main():
+    await logs_lark_sync(client=client)
         
 
-asyncio.run(logs_lark_sync(client=client))
+asyncio.run(main())
