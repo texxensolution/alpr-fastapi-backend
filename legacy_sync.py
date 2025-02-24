@@ -170,7 +170,7 @@ async def logs_lark_sync(
                 )
 
                 await client.base.update_records(
-                    app_token=settings.LOGS_TABLE_ID,
+                    app_token=settings.BASE_LOGS_APP_TOKEN,
                     table_id=settings.LOGS_TABLE_ID,
                     records=update_payload
                 )
