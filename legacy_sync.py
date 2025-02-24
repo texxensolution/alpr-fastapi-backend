@@ -109,11 +109,11 @@ def stats_update_payload(
     
 
 async def logs_lark_sync(
-    db: Session,
     client: Lark
 ):
     while True:
         try:
+            db = next(get_db())
             TARGET_LOG_DATE = date.today()
             logger.debug("logging at: %s", datetime.now())
 
@@ -174,20 +174,10 @@ async def logs_lark_sync(
                 logger.debug("updated %s records", len(stats))
             db.close()
         except Exception as e:
-            print("error: ", e)
+            logger.error("Error: %s", e)
         finally:
             await asyncio.sleep(5)
 
         
-async def main():
-    db = next(get_db())
-    logs_sync = asyncio.create_task(
-        logs_lark_sync(
-            db,
-            client=client
-        )
-    )
-    await logs_sync
-    db.close()
 
-asyncio.run(main())
+asyncio.run(logs_lark_sync(client=client))
