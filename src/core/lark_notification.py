@@ -77,7 +77,7 @@ class LarkNotification:
             "image": image_data,
             "status": data.status,
             "client_name": data.accounts[0].client,
-            "similar_plate": data.accounts[0]
+            "similar_plate": data.accounts[0].plate
         }
 
         async with httpx.AsyncClient() as client:
