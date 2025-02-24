@@ -74,7 +74,8 @@ while True:
                 data = create_payload_references_for_names(names, CURRENT_DATE_TO_SYNC)
 
                 response = asyncio.run(base_manager.create_records(
-                    table_id=LOGS_TABLE_ID,
+                    app_token=settings.BASE_LOGS_APP_TOKEN,
+                    table_id=settings.LOGS_TABLE_ID,
                     data=data
                 ))
 
