@@ -3,6 +3,7 @@ import sys
 import logging
 import asyncio
 from sqlalchemy.orm import Session
+from src.core.config import settings
 from dotenv import load_dotenv
 from datetime import date, datetime
 from lark.token_manager import TokenManager
@@ -133,7 +134,8 @@ async def logs_lark_sync(
                 )
 
                 response = await client.base.create_records(
-                    table_id=LOGS_TABLE_ID,
+                    app_token=settings.BASE_LOGS_APP_TOKEN,
+                    table_id=settings.LOGS_TABLE_ID,
                     data=data
                 )
 
@@ -168,8 +170,9 @@ async def logs_lark_sync(
                 )
 
                 await client.base.update_records(
-                    LOGS_TABLE_ID,
-                    update_payload
+                    app_token=settings.LOGS_TABLE_ID,
+                    table_id=settings.LOGS_TABLE_ID,
+                    data=update_payload
                 )
                 logger.debug("updated %s records", len(stats))
             db.close()
