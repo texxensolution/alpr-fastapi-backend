@@ -1,6 +1,7 @@
 import os
 import time
 import asyncio
+from src.core.config import settings
 from dotenv import load_dotenv
 from datetime import date, datetime
 from lark.token_manager import TokenManager
@@ -119,11 +120,13 @@ while True:
                 })
 
             print("Syncing from Postgresql to Lark Base...")
-            response = asyncio.run(base_manager.update_records(
-                table_id=LOGS_TABLE_ID,
-                records={
-                    "records": update_references_records
-                }
+            response = asyncio.run(
+                base_manager.update_records(
+                    app_token=settings.BASE_LOGS_APP_TOKEN,
+                    table_id=settings.LOGS_TABLE_ID,
+                    records={
+                        "records": update_references_records
+                    }
             ))
             print("Done syncing...")
     except Exception as err:
