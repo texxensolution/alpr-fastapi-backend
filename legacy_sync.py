@@ -1,11 +1,14 @@
 import os
+import sys
+import logging
 import asyncio
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from datetime import date, datetime
 from lark.token_manager import TokenManager
-from lark.base_manager import BaseManager
+from src.lark.lark import Lark
 from src.core.models import LarkHistoryReference
+from src.core.dependencies import get_db
 from src.db.logger import (
     get_ids_without_lark_ref_for_today,
     get_references_by_target_date,
@@ -15,6 +18,17 @@ from src.db.logger import (
 from typing import List, Tuple
 
 
+# Configure the logger
+logging.basicConfig(
+    level=logging.DEBUG,  # Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Print logs to stdout
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 CHOPPER_APP_ID = os.getenv('CHOPPER_APP_ID')
@@ -23,6 +37,11 @@ BASE_APP_TOKEN = os.getenv('BASE_LOGS_APP_TOKEN')
 LOGS_TABLE_ID = "tblUzqg6jJa48WnI" # V3
 
 token_manager = TokenManager(
+    app_id=CHOPPER_APP_ID,
+    app_secret=CHOPPER_APP_SECRET
+)
+
+client = Lark(
     app_id=CHOPPER_APP_ID,
     app_secret=CHOPPER_APP_SECRET
 )
@@ -91,11 +110,12 @@ def stats_update_payload(
 
 async def logs_lark_sync(
     db: Session,
-    base_manager: BaseManager
+    client: Lark
 ):
     while True:
         try:
             TARGET_LOG_DATE = date.today()
+            logger.debug("logging at: %s", datetime.now())
 
             union_ids = get_ids_without_lark_ref_for_today(
                 session=db,
@@ -106,12 +126,13 @@ async def logs_lark_sync(
 
             if total_union_ids > 0:
                 # create a payload for inserting data or row in lark base
+                logger.debug("total union ids: %s", total_union_ids)
                 data = create_counter_payload_for_union_ids(
                     union_ids=union_ids,
                     target_date=TARGET_LOG_DATE
                 )
 
-                response = await base_manager.create_records(
+                response = await client.base.create_records(
                     table_id=LOGS_TABLE_ID,
                     data=data
                 )
@@ -132,8 +153,6 @@ async def logs_lark_sync(
                 db=db
             )
             
-            # no_of_references = len(references)
-
             reference_lookup, union_ids = create_reference_map(references)
 
             if len(union_ids) > 0:
@@ -148,18 +167,11 @@ async def logs_lark_sync(
                     reference_lookup 
                 )
 
-                await base_manager.update_records(
+                await client.base.update_records(
                     LOGS_TABLE_ID,
                     update_payload
                 )
-                # print(
-                #     f"LarkLogsSync at: {syncing_timestamp} - {no_of_references} references updated. {total_union_ids} new references added.", 
-                #     end=""
-                # )
-            # else:
-            #     print("No references to update.", end="")
-
-            # print(" Wait for 5 secs... \n", end="")
+                logger.debug("updated %s records", len(stats))
             db.close()
         except Exception as e:
             print("error: ", e)
@@ -167,4 +179,15 @@ async def logs_lark_sync(
             await asyncio.sleep(5)
 
         
-        
+async def main():
+    db = next(get_db())
+    logs_sync = asyncio.create_task(
+        logs_lark_sync(
+            db,
+            client=client
+        )
+    )
+    await logs_sync
+    db.close()
+
+asyncio.run(main())

@@ -43,7 +43,7 @@ base_manager = BaseManager(
 async def run_system_monitoring(db: Session):
     while True:
         # print(f"Storing system usage at {datetime.now()}...")
-        store_system_usage(db)
+        # store_system_usage(db)
         await asyncio.sleep(60)
 
 
