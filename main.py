@@ -19,7 +19,7 @@ from src.api.v4.scanner import router as scanner_v4_router
 from src.api.v3.status import router as users_status_router
 from src.ws.status import router as ws_status_router
 # from src.db.monitoring import store_system_usage
-from legacy_sync import logs_lark_sync
+# from legacy_sync import logs_lark_sync
 from lark.base_manager import BaseManager
 from src.core.dependencies import settings
 
@@ -38,7 +38,6 @@ base_manager = BaseManager(
     app_token=BASE_APP_TOKEN,
     token_manager=token_manager
 )
-
 
 # async def run_system_monitoring(db: Session):
 #     while True:
