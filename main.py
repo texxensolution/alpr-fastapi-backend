@@ -47,30 +47,28 @@ async def run_system_monitoring(db: Session):
         await asyncio.sleep(60)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    db = next(get_db())
-    try:
-        print("Starting system monitoring...")
-        system_monitoring = asyncio.create_task(
-            run_system_monitoring(db)
-        )
-        logs_sync = asyncio.create_task(
-            logs_lark_sync(
-                db,
-                base_manager=base_manager
-            )
-        )
-        print("Started system monitoring.")
-        yield
-    finally:
-        logs_sync.cancel()
-        system_monitoring.cancel()
-        print("Closing ")
-        print("Shutting down server...")
+# async def lifespan(app: FastAPI):
+#     db = next(get_db())
+#     try:
+#         print("Starting system monitoring...")
+#         # system_monitoring = asyncio.create_task(
+#         #     run_system_monitoring(db)
+#         # )
+#         # logs_sync = asyncio.create_task(
+#         #     logs_lark_sync(
+#         #         db,
+#         #         base_manager=base_manager
+#         #     )
+#         # )
+#         print("Started system monitoring.")
+#         yield
+#     finally:
+#         logs_sync.cancel()
+#         system_monitoring.cancel()
+#         print("Closing ")
+#         print("Shutting down server...")
 
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 app.include_router(log_router)
 app.include_router(user_router)
