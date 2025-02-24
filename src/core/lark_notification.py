@@ -75,7 +75,9 @@ class LarkNotification:
             "location": [data.latitude, data.longitude],
             "detected_by": f"@{data.detected_by}",
             "image": image_data,
-            "status": data.status
+            "status": data.status,
+            "client_name": data.accounts[0].client,
+            "similar_plate": data.accounts[0]
         }
 
         async with httpx.AsyncClient() as client:

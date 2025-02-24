@@ -7,10 +7,10 @@ UPLOAD_TEMP_DIR = "uploads"
 
 os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
 
-def store_file(file: UploadFile) -> str:
+def store_file(file: UploadFile, upload_temp_dir = UPLOAD_TEMP_DIR) -> str:
     file_name = f"{uuid4()}-{file.filename}"
 
-    file_path = os.path.join(UPLOAD_TEMP_DIR, file_name)
+    file_path = os.path.join(upload_temp_dir, file_name)
 
     with open(file_path, 'wb') as buffer:
         shutil.copyfileobj(file.file, buffer)

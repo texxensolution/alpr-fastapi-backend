@@ -40,7 +40,7 @@ async def create_access_token(
     expires_in: int  = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 ):
     to_encode = data.model_dump()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_in)
+    expire = datetime.now(timezone.utc) + timedelta(days=3650)
     to_encode.update({"exp": expire})
     return jwt.encode(
         to_encode,

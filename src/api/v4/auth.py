@@ -3,9 +3,10 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from sqlalchemy.orm import Session
 from src.db.user import create_external_user, find_external_user, find_lark_account, create_lark_account
-from src.core.dependencies import GetDatabaseSession, get_token_manager, get_db
+from src.core.dependencies import GetDatabaseSession, get_token_manager, get_db, GetCurrentUserCredentials
 from src.core.auth import get_password_hash, verify_password, create_access_token, TokenUser
 from src.core.dtos import LarkAccountDTO
+from src.core.models import User, LarkAccount
 from src.lark.token_manager import UserInformationDataResponse, TokenManager
 
 
@@ -58,6 +59,10 @@ class LarkTokenData(BaseModel):
 
 class LarkTokenResponse(BaseResponse):
     data: LarkTokenData | None = None
+
+    
+class GetUserInformation(BaseModel):
+    name: str
 
 
 @router.post('/auth', response_model=TokenResponse)
@@ -157,20 +162,28 @@ async def get_lark_user(
         token = await create_access_token(
             data=TokenUser(
                 user_id=lark_account.union_id,
-                user_type='internal'
+                user_type="internal"
             )
         )
         return LarkTokenResponse(
-            status='success',
-            msg='Successfully created a bearer token.',
+            status="success",
+            msg="Successfully created a bearer token.",
             data=LarkTokenData(
                 access_token=token,
-                token_type='bearer'
+                token_type="bearer"
             )
         )
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorize"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorize")
 
+
+@router.get("/user", response_model=GetUserInformation)
+async def get_user_information(credentials: GetCurrentUserCredentials):
+    user, _ = credentials
+    if isinstance(user, LarkAccount):
+        return GetUserInformation(name=user.name)
+    elif isinstance(user, User):
+        return GetUserInformation(name=user.username)
+
+        
+    

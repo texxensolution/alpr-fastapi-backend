@@ -1,10 +1,30 @@
-from fastapi import APIRouter, Depends
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    File,
+    UploadFile,
+    BackgroundTasks,
+)
+from src.core.config import settings
 from typing import List, Tuple
 from pydantic import BaseModel
 from enum import Enum
-from src.core.dependencies import AccountStatus, get_account_status, GetLoggerSession
+from src.core.dtos import ScannerResponse, Detection
+from src.core.models import LarkAccount
+from src.core.dependencies import (
+    AccountStatus,
+    get_account_status,
+    GetLoggerSession,
+    GetCurrentUserCredentials,
+    LarkNotificationDepends,
+    GetDatabaseSession
+)
+from src.utils.file_utils import store_file, delete_file
+from src.utils.plate_helper import normalize_plate
 from src.core.account_status import Account
-from src.core.dependencies import GetCurrentUserCredentials
+from sqlalchemy.orm import Session
+from src.utils.rate_limiter import RateLimiter
 
 
 router = APIRouter(
@@ -12,6 +32,7 @@ router = APIRouter(
     tags=['Scanner 4.0']
 )
 
+rate_limiter = RateLimiter(80)
 
 class DetectedType(Enum):
     PLATES = 'plates'
@@ -32,7 +53,7 @@ class Status(Enum):
 
 class PlateCheckingRequest(BaseModel):
     plate: str
-    detected_type: DetectedType
+    detected_type: str
     location: Tuple[float, float]
 
 
@@ -115,3 +136,105 @@ async def plate_checking(
 
     return response
     
+
+@router.post('/notify/group-chat')
+async def notify_group_chat(
+    background_tasks: BackgroundTasks,
+    lark_notification: LarkNotificationDepends,
+    logger: GetLoggerSession,
+    credentials: GetCurrentUserCredentials,
+    plate: str = Form(...),
+    image: UploadFile = File(...),
+    detection_type: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    account_status: AccountStatus = Depends(get_account_status)
+):
+    user, user_id = credentials
+
+    plate = normalize_plate(plate)
+    
+    if not rate_limiter.can_proceed(plate):
+        return ScannerResponse.model_validate({
+            "message": "skipped notification", 
+            "type": "skipped"
+        })
+
+    if account := account_status.get_account_info_by_plate(plate):
+        file_path = store_file(image)
+        await logger.request(
+            plate_no=plate,
+            user_id=user_id,
+            detection_type=detection_type,
+            event_type=EventType.POSITIVE_PLATE_NOTIFICATION.value,
+            location=[latitude, longitude]
+        )
+        if isinstance(user, LarkAccount):
+            detection = Detection(
+                plate_number=plate,
+                file_path=file_path,
+                accounts=[account],
+                status='POSITIVE',
+                union_id=user.union_id,
+                user_id=user.user_id,
+                latitude=latitude,
+                longitude=longitude,
+                detected_by=user.name
+            )
+            background_tasks.add_task(
+                lark_notification.notify,
+                data=detection,
+                group_chat_id=settings.MAIN_GC_ID
+            )
+        return ScannerResponse.model_validate({
+            "message": "queued notification sent", 
+            "type": "positive"
+        })
+
+    elif similar_accounts := account_status.get_similar_accounts_by_plate(plate):
+        file_path = store_file(image)
+        await logger.request(
+            plate_no=plate,
+            user_id=user_id,
+            detection_type=detection_type,
+            event_type=EventType.FOR_CONFIRMATION_NOTIFICATION,
+            location=[latitude, longitude]
+        )
+        if isinstance(user, LarkAccount):
+            detection = Detection(
+                plate_number=plate,
+                file_path=file_path,
+                status='FOR_CONFIRMATION',
+                accounts=similar_accounts,
+                user_id=user.user_id,
+                latitude=latitude,
+                longitude=longitude,
+                detected_by=user.name
+            )
+            background_tasks.add_task(
+                lark_notification.notify,
+                data=detection,
+                group_chat_id=settings.MAIN_GC_ID
+            )
+        return ScannerResponse.model_validate({
+            "message": "queued notification sent", 
+            "type": "for_confirmation"
+        })
+
+
+@router.post('/upload')
+async def upload_file(
+    plate_number: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    image: UploadFile = File(...)
+):
+
+    store_file(image, upload_temp_dir="uploads/example")
+    print("plate_number:", plate_number)
+    print("latitude:", latitude)
+    print("longitude:", longitude)
+
+    return {
+        "message": "success"
+    }

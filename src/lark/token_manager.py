@@ -74,25 +74,17 @@ class TokenManager:
         self, code: str, grant_type: str = "authorization_code"
     ):
         app_token_response = await self.get_app_access_token()
-
         headers = {"Authorization": f"Bearer {app_token_response.app_access_token}"}
-
         payload = {"grant_type": grant_type, "code": code}
-
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 GET_USER_ACCESS_TOKEN_URL, headers=headers, data=payload
             )
-
-            print(response.json())
-
             response_model = UserTokenResponse(**response.json())
-
             if response_model.code != 0:
                 raise LarkBaseHTTPException(
                     code=response_model.code, msg=response_model.message
                 )
-
             return response_model
 
     async def get_tenant_access_token(self):

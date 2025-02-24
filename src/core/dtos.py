@@ -93,3 +93,9 @@ class DetectedType(Enum):
     POSITIVE_PLATE_NOTIFICATION = 'POSITIVE_PLATE_NOTIFICATION'
     FOR_CONFIRMATION_NOTIFICATION = 'FOR_CONFIRMATION_NOTIFICATION'
     PLATE_CHECKING = 'PLATE_CHECKING'
+
+
+class ScannerResponse(BaseModel):
+    message: str
+    type: str
+
