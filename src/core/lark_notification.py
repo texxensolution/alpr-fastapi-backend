@@ -51,10 +51,11 @@ class LarkNotification:
 
             if data.status == "POSITIVE":
                 for members_id_chunk in members_id_chunks:
-                    await self._client.messenger.buzz_message(
+                    response = await self._client.messenger.buzz_message(
                         message_id=message_response.data.message_id,
                         group_members_union_id=members_id_chunk
                     )
+                    print('notify-response', response)
             print(f"Notified the group_chat: {group_chat_id}, status: success")
         except Exception as err:
             print(f"NotifyError: {str(err)}")

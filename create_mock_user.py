@@ -4,7 +4,7 @@ import asyncio
 
 async def main():
     token_credentials = TokenUser(
-        user_id="on_e7497b844beef6e47a915f67361c8c66",
+        user_id="on_0021290c15f126423b3e5c406e719b7b",
         user_type="internal"
     )
     generated_token = await create_access_token(token_credentials)
