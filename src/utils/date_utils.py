@@ -8,3 +8,7 @@ def get_date_timestamp(target_date: date) -> int:
     # Get the integer timestamp (seconds since Unix epoch)
     timestamp = int(today_datetime.timestamp()) * 1000
     return timestamp
+
+
+def timestamp_to_date(timestamp: int) -> str:
+    return datetime.fromtimestamp(timestamp / 1000).date()

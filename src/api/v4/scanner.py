@@ -220,21 +220,3 @@ async def notify_group_chat(
             "message": "queued notification sent", 
             "type": "for_confirmation"
         })
-
-
-@router.post('/upload')
-async def upload_file(
-    plate_number: str = Form(...),
-    latitude: float = Form(...),
-    longitude: float = Form(...),
-    image: UploadFile = File(...)
-):
-
-    store_file(image, upload_temp_dir="uploads/example")
-    print("plate_number:", plate_number)
-    print("latitude:", latitude)
-    print("longitude:", longitude)
-
-    return {
-        "message": "success"
-    }

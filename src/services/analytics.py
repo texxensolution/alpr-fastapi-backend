@@ -26,7 +26,7 @@ class LarkUsersAnalytics:
         self,
         union_ids: List[str],
         target_date: date
-    ) -> List[Row[Tuple[LogRecord, str]]]:
+    ) -> list:
         result = (
             self.db.query(
                 LogRecord,

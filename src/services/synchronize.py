@@ -8,7 +8,7 @@ from src.core.models import LarkHistoryReference
 from src.lark.lark import Lark
 from src.core.config import settings
 from src.lark.exceptions import LarkBaseHTTPException
-from src.utils.date_utils import get_date_timestamp
+from src.utils.date_utils import get_date_timestamp, timestamp_to_date
 
 
 class LarkSynchronizer:
@@ -31,14 +31,19 @@ class LarkSynchronizer:
             
             # First check if there are any records that don't have lark_record_id
             refs_without_record_id = self.get_refs_without_remote_ref()
-            # print('refs_without_record_id', refs_without_record_id)
-            await self.initialize_refs_without_record_id(
-                refs=refs_without_record_id,
-                target_date=target_date
-            )
+
+            if len(refs_without_record_id) > 0:
+                await self.initialize_refs_without_record_id(
+                    refs=refs_without_record_id,
+                    target_date=target_date
+                )
+            else:
+                print("no refs without record id")
             
             # records that is not yet synchronize to remote lark base storage
             buffered_refs = self.get_buffered_refs(target_date)
+
+            print('buffered_refs_count', len(buffered_refs))
             
             # create a request payload for updating corresponding record on lark base
             def union_id_extractor(ref: LarkHistoryReference):
@@ -50,6 +55,7 @@ class LarkSynchronizer:
                 union_ids=union_ids,
                 target_date=target_date
             )
+            print('result', result)
             
             summaries = self.analytics.summary(result)
 
@@ -100,7 +106,7 @@ class LarkSynchronizer:
             union_ids=union_ids, target_date=target_date
         )
         print('multiple_refs_payload', multiple_refs_payload)
-
+        
         response = await self.lark.base.create_records(
             app_token=settings.BASE_LOGS_APP_TOKEN,
             table_id=settings.LOGS_TABLE_ID,
@@ -109,8 +115,16 @@ class LarkSynchronizer:
 
         created_records = response.data.records if response.code == 0 else []
         need_to_be_updated_record = []
-        # for record in created_records:
-            # 
+        for record in created_records:
+            need_to_be_updated_record.append({
+                "union_id": record["fields"]["Field Agent"][0]["id"],
+                "lark_record_id": record["record_id"],
+                "log_date": timestamp_to_date(record["fields"]["Log Date"])
+            })
+
+        self.db.bulk_update_mappings(LarkHistoryReference, need_to_be_updated_record)
+        self.db.commit()
+        print("updated~")
         # print('response', response.data)
 
     # def 
@@ -154,7 +168,8 @@ class LarkSynchronizer:
                 LarkHistoryReference.updated_at == None,
                 LarkHistoryReference.last_sync_at == None,
             ),
-            LarkHistoryReference.log_date == target_date
+            LarkHistoryReference.log_date == target_date,
+            LarkHistoryReference.lark_record_id != None
         ).all()
         
     def mass_mark_as_sync(

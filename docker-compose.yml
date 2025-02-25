@@ -88,6 +88,25 @@ services:
     networks:
       - app-network
     restart: always  # Restart on failure
+  
+  
+  sync-v4:
+    build: .
+    container_name: sync-v4
+    command: ["python", "sync_v4.py"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+    restart: always  # Restart on failure
     
 volumes:
   postgres_data:  # Persistent storage for PostgreSQL
