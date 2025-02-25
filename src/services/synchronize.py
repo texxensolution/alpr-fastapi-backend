@@ -1,3 +1,4 @@
+import asyncio
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from .analytics import LarkUsersAnalytics
@@ -7,7 +8,7 @@ from src.core.models import LarkHistoryReference
 from src.lark.lark import Lark
 from src.core.config import settings
 from src.lark.exceptions import LarkBaseHTTPException
-import asyncio
+from src.utils.date_utils import get_date_timestamp
 
 
 class LarkSynchronizer:
@@ -27,17 +28,31 @@ class LarkSynchronizer:
     async def start_watching(self):
         while not self.syncing_event.is_set():
             target_date = date.today()
+            
+            # First check if there are any records that don't have lark_record_id
+            refs_without_record_id = self.get_refs_without_remote_ref()
+            # print('refs_without_record_id', refs_without_record_id)
+            await self.initialize_refs_without_record_id(
+                refs=refs_without_record_id,
+                target_date=target_date
+            )
+            
             # records that is not yet synchronize to remote lark base storage
             buffered_refs = self.get_buffered_refs(target_date)
+            
             # create a request payload for updating corresponding record on lark base
             def union_id_extractor(ref: LarkHistoryReference):
                 return ref.union_id
+            
             union_ids = list(map(union_id_extractor, buffered_refs))
+            
             result = self.analytics.get_logs_by_union_id(
                 union_ids=union_ids,
                 target_date=target_date
             )
+            
             summaries = self.analytics.summary(result)
+
             # convert the summary to lark payload
             payload = self._mass_update_ref_payload(
                 summaries,
@@ -59,17 +74,73 @@ class LarkSynchronizer:
                     "records": payload
                 }
             )
+            
             record_ids = [
                 record["record_id"]
                 for record in response.data["records"]
             ]
             print('record_ids', record_ids)
-            self.mass_mark_as_sync(record_ids, target_date)
-            print("synced~!")
-            await asyncio.sleep(self.waiting_period)
 
+            self.mass_mark_as_sync(
+                record_ids,
+                target_date
+            )
+            print("synced~!")
             
-        # await self.find_or_create_ref(union_id=union_id, target_date=target_date)
+            await asyncio.sleep(self.waiting_period)
+    
+    async def initialize_refs_without_record_id(
+        self,
+        refs: List[LarkHistoryReference],
+        target_date: date
+    ):
+        union_ids = [ref.union_id for ref in refs]
+
+        multiple_refs_payload = self.create_multiple_refs_payload(
+            union_ids=union_ids, target_date=target_date
+        )
+        print('multiple_refs_payload', multiple_refs_payload)
+
+        response = await self.lark.base.create_records(
+            app_token=settings.BASE_LOGS_APP_TOKEN,
+            table_id=settings.LOGS_TABLE_ID,
+            data=multiple_refs_payload
+        )
+
+        created_records = response.data.records if response.code == 0 else []
+        need_to_be_updated_record = []
+        # for record in created_records:
+            # 
+        # print('response', response.data)
+
+    # def 
+    
+    def create_multiple_refs_payload(
+        self,
+        union_ids: List[str],
+        target_date: date
+    ):
+        items = []
+        for union_id in union_ids:
+            payload = {
+                "fields": {
+                    "Field Agent": [
+                        { "id": union_id }
+                    ],
+                    "Total Requests": 0,
+                    "Positive Count": 0,
+                    "For Confirmation Count": 0,
+                    "Unique Scanned Count": 0,
+                    "Log Date": get_date_timestamp(target_date)
+                }
+            }
+            items.append(payload)
+        return items
+
+    def get_refs_without_remote_ref(self):
+        return self.db.query(LarkHistoryReference).filter(
+            LarkHistoryReference.lark_record_id == None
+        ).all()
 
     def get_buffered_refs(
         self,
@@ -125,7 +196,10 @@ class LarkSynchronizer:
                 )
             )
             if response.code != 0:
-                raise LarkBaseHTTPException(response.code, response.msg)
+                raise LarkBaseHTTPException(
+                    response.code, 
+                    response.msg
+                )
             return response
         except Exception as err:
             print(f"Error: {err}")
@@ -188,22 +262,16 @@ class LarkSynchronizer:
             union_id=union_id,
             target_date=target_date
         )
-
         if not ref:
-            response = await self._create_remote_ref(union_id, target_date)       
-
-            if response.code == 0:
-                ref = self.create_ref(response.data.record.record_id, union_id, target_date)
+            ref = self.create_ref(union_id, target_date)
         return ref
             
     def create_ref(
         self,
-        record_id: str,
         union_id: str,
         target_date: date
     ):
         ref = LarkHistoryReference(
-            lark_record_id=record_id,
             union_id=union_id,
             log_date=target_date
         )
@@ -243,7 +311,6 @@ class LarkSynchronizer:
         target_date: date,
         autocommit: bool = True
     ) -> (LarkHistoryReference | None):
-        print("called")
         ref = await self.find_or_create_ref(union_id, target_date)
 
         if not ref:

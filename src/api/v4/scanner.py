@@ -90,7 +90,7 @@ async def plate_checking(
     account_status: AccountStatus = Depends(get_account_status)
 ):
     _, user_id = credentials
-    plate = body.plate
+    plate = normalize_plate(body.plate)
     detected_type = body.detected_type
     (lat, lon) = body.location
 

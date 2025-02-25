@@ -19,11 +19,11 @@ analytics = LarkUsersAnalytics(db)
 
 synchronizer = LarkSynchronizer(
     db=db,
-    target_date=date.today(),
     analytics=analytics,
     lark=lark
 )
 
+target_date = date.today(),
 # response = synchronizer.start_watching()
 asyncio.run(synchronizer.start_watching())
 

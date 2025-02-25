@@ -1,0 +1,1 @@
+ALTER TABLE log_history_references ALTER COLUMN lark_record_id DROP NOT NULL;

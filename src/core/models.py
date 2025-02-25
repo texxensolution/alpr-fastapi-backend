@@ -63,7 +63,7 @@ class LarkHistoryReference(Base):
         DateTime,
         nullable=True
     )
-    lark_record_id: Mapped[str]
+    lark_record_id: Mapped[Union[str, None]] = mapped_column(nullable=True)
     def __init__(
         self, 
         union_id: str, 
