@@ -7,6 +7,7 @@ from src.lark.lark import Lark
 from src.lark.messenger import SendMessagePayload
 from src.core.dtos import Detection, CardTemplateDataField, CardTemplatePayload 
 from src.core.config import settings
+from more_itertools import chunked
 
 class LarkNotification:
     def __init__(
@@ -33,6 +34,8 @@ class LarkNotification:
             members_id = await self._get_gc_members_id(
                 group_chat_id
             )
+            
+            members_id_chunks = list(chunked(members_id, 100))
 
             send_message_obj = SendMessagePayload(
                 receive_id=group_chat_id,
@@ -47,10 +50,11 @@ class LarkNotification:
             await self._notify_web_app(data)
 
             if data.status == "POSITIVE":
-                await self._client.messenger.buzz_message(
-                    message_id=message_response.data.message_id,
-                    group_members_union_id=members_id
-                )
+                for members_id_chunk in members_id_chunks:
+                    await self._client.messenger.buzz_message(
+                        message_id=message_response.data.message_id,
+                        group_members_union_id=members_id_chunk
+                    )
             print(f"Notified the group_chat: {group_chat_id}, status: success")
         except Exception as err:
             print(f"NotifyError: {str(err)}")

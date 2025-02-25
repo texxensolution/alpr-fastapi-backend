@@ -16,3 +16,4 @@ pydantic-settings
 aiofiles
 pyjwt
 passlib[bcrypt]
+more-itertools
