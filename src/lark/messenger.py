@@ -33,8 +33,7 @@ class SendMessageResponse(BaseModel):
     code: int
     data: Optional[SendMessageDataField] = None
     msg: str
-
-
+    
 class SendMessagePayload(BaseModel):
     receive_id: str
     msg_type: str
@@ -50,6 +49,11 @@ class PutAttachmentResponse(BaseModel):
     msg: str
     data: Optional[PutAttachmentMessageDataField] = None
 
+
+class BuzzMessageResponse(BaseModel):
+    code: int
+    msg: str
+    data: Optional[dict] = None
 
 class LarkMessenger:
     def __init__(self, token_manager: TokenManager):
@@ -151,4 +155,10 @@ class LarkMessenger:
             response = await client.patch(
                 url=formatted_url, json=body, headers=headers, params=params
             )
+
+            response = BuzzMessageResponse(**response.json())
+
+            if response.code != 0:
+                raise LarkBaseHTTPException(response.code, response)
+            
         return response
