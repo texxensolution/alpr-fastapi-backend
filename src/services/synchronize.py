@@ -55,9 +55,9 @@ class LarkSynchronizer:
                 union_ids=union_ids,
                 target_date=target_date
             )
-            print('result', result)
             
             summaries = self.analytics.summary(result)
+            print("done computing summary!")
 
             # convert the summary to lark payload
             payload = self._mass_update_ref_payload(
