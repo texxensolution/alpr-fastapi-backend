@@ -63,7 +63,7 @@ class Detection(BaseModel):
     ]
     accounts: List[Account]
     file_path: str
-    union_id: str
+    union_id: Optional[str] = None
     user_id: Optional[str] = None
     latitude: float
     longitude: float
