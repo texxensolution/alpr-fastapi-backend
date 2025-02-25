@@ -47,7 +47,6 @@ class LarkNotification:
                 send_message_obj
             )
 
-            await self._notify_web_app(data)
 
             if data.status == "POSITIVE":
                 for members_id_chunk in members_id_chunks:
@@ -56,6 +55,12 @@ class LarkNotification:
                         group_members_union_id=members_id_chunk
                     )
                     print('notify-response', response)
+
+            try:
+                await self._notify_web_app(data)
+            except Exception as err:
+                print(f"NotifyWebAppError: {str(err)} server down")
+
             print(f"Notified the group_chat: {group_chat_id}, status: success")
         except Exception as err:
             print(f"NotifyError: {str(err)}")
