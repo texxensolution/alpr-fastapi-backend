@@ -197,7 +197,7 @@ async def notify_group_chat(
             plate_no=plate,
             user_id=user_id,
             detection_type=detection_type,
-            event_type=EventType.FOR_CONFIRMATION_NOTIFICATION,
+            event_type=EventType.FOR_CONFIRMATION_NOTIFICATION.value,
             location=[latitude, longitude]
         )
         if isinstance(user, LarkAccount):
