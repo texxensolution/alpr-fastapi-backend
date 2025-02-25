@@ -68,11 +68,9 @@ class LarkHistoryReference(Base):
         self, 
         union_id: str, 
         log_date: str,
-        lark_record_id: str
     ):
         self.union_id = union_id 
         self.log_date = log_date 
-        self.lark_record_id = lark_record_id
 
     __table_args__ = (
         PrimaryKeyConstraint(

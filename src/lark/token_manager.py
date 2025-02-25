@@ -147,15 +147,11 @@ class TokenManager:
 
     async def get_user_information(self, user_access_token: str):
         headers = {"Authorization": f"Bearer {user_access_token}"}
-
         async with httpx.AsyncClient() as client:
             response = await client.get(GET_USER_INFORMATION_URL, headers=headers)
-
             response_model = UserInformationResponse(**response.json())
-
             if response_model.code != 0:
                 raise LarkBaseHTTPException(response_model.code, response_model.msg)
-
             return response_model
 
     def _is_token_still_valid(self, key: str):
