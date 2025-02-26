@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from sqlalchemy.orm import Session
 from src.db.user import create_external_user, find_external_user, find_lark_account, create_lark_account
-from src.core.dependencies import GetDatabaseSession, get_token_manager, get_db, GetCurrentUserCredentials
+from src.core.dependencies import GetDatabaseSession, get_token_manager, get_db, GetCurrentUserCredentials, GetLarkClient
 from src.core.auth import get_password_hash, verify_password, create_access_token, TokenUser
 from src.core.dtos import LarkAccountDTO
 from src.core.models import User, LarkAccount
@@ -130,16 +130,16 @@ async def register_user(
 @router.get('/lark/user', response_model=LarkTokenResponse)
 async def get_lark_user(
     code: str,
-    token_manager: TokenManager = Depends(get_token_manager),
+    client: GetLarkClient,
     db: Session = Depends(get_db)
 ):
     try:
         user_access_token = (
-            await token_manager.get_user_access_token(code)
+            await client.token.get_user_access_token(code)
         ).data.access_token
 
         user_information = (
-            await token_manager.get_user_information(user_access_token)
+            await client.token.get_user_information(user_access_token)
         ).data
 
         lark_account = find_lark_account(
@@ -173,7 +173,8 @@ async def get_lark_user(
                 token_type="bearer"
             )
         )
-    except Exception:
+    except Exception as err:
+        print("error", err)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorize")
 
 

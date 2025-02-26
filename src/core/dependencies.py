@@ -1,4 +1,3 @@
-import os
 import jwt
 from dotenv import load_dotenv
 from lark.token_manager import TokenManager
@@ -61,12 +60,10 @@ def get_db():
 
 def get_token_manager():
     load_dotenv()
-    app_id = os.getenv('CHOPPER_APP_ID')
-    app_secret = os.getenv('CHOPPER_APP_SECRET')
 
     return TokenManager(
-        app_id=app_id,
-        app_secret=app_secret
+        app_id=settings.CHOPPER_APP_ID,
+        app_secret=settings.CHOPPER_APP_SECRET
     )
 
     

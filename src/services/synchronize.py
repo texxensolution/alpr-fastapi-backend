@@ -113,7 +113,7 @@ class LarkSynchronizer:
             data=multiple_refs_payload
         )
 
-        created_records = response.data.records if response.code == 0 else []
+        created_records = response.data.records if response.code == 0 else []        
         need_to_be_updated_record = []
         for record in created_records:
             need_to_be_updated_record.append({

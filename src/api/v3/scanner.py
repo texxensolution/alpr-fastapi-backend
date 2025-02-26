@@ -9,7 +9,13 @@ from fastapi import (
     HTTPException,
     BackgroundTasks
 )
-from src.core.dependencies import get_account_status, get_db, LarkNotificationDepends
+from src.core.dependencies import (
+    get_account_status, 
+    get_db, 
+    LarkNotificationDepends, 
+    GetLoggerSession
+)
+
 from src.core.account_status import AccountStatus
 from pydantic import BaseModel
 from typing import Literal, List
@@ -58,6 +64,7 @@ class ScannerResponse(BaseModel):
 @router.post('/plate/check', response_model=LicensePlateCheckResponse)
 async def plate_check(
     form: CheckPlateRequest,
+    logger: GetLoggerSession,
     account_status: AccountStatus = Depends(get_account_status),
     session: Session = Depends(get_db),
 ):
@@ -74,13 +81,12 @@ async def plate_check(
 
     plate_number = normalize_plate(form.plate)
 
-    persist_log_entry(
-        scanned_text=plate_number,
-        union_id=lark_account.union_id,
-        latitude=form.latitude,
-        longitude=form.longitude,
+    await logger.request(
+        plate_no=plate_number,
+        user_id=form.union_id,
+        location=(form.latitude, form.longitude),
         event_type='PLATE_CHECKING',
-        db=session
+        detection_type='plates'
     )
    
     if account := account_status.get_account_info_by_plate(plate_number):
@@ -115,6 +121,7 @@ async def plate_check(
 async def notify_group_chat(
     background_tasks: BackgroundTasks,
     lark_notification: LarkNotificationDepends,
+    logger: GetLoggerSession,
     plate: str = Form(...),
     image: UploadFile = File(...),
     union_id: str = Form(...),
@@ -144,13 +151,12 @@ async def notify_group_chat(
 
     if account := account_status.get_account_info_by_plate(plate):
         file_path = store_file(image)
-        persist_log_entry(
-            scanned_text=plate,
-            union_id=lark_account.union_id,
-            latitude=latitude,
-            longitude=longitude,
+        await logger.request(
+            plate_no=plate,
+            user_id=lark_account.union_id,
+            location=(latitude, longitude),
             event_type='POSITIVE_PLATE_NOTIFICATION',
-            db=session
+            detection_type='plates'
         )
         detection = Detection(
             plate_number=plate,
@@ -175,13 +181,12 @@ async def notify_group_chat(
 
     elif similar_accounts := account_status.get_similar_accounts_by_plate(plate):
         file_path = store_file(image)
-        persist_log_entry(
-            scanned_text=plate,
-            union_id=lark_account.union_id,
-            latitude=latitude,
-            longitude=longitude,
+        await logger.request(
+            plate_no=plate,
+            user_id=lark_account.union_id,
+            location=(latitude, longitude),
             event_type='FOR_CONFIRMATION_NOTIFICATION',
-            db=session
+            detection_type='plates'
         )
         detection = Detection(
             plate_number=plate,

@@ -1,6 +1,7 @@
 import httpx
 import time
 from typing import Union
+from typing import Optional
 from pydantic import BaseModel
 from .exceptions import LarkBaseHTTPException
 
@@ -55,7 +56,7 @@ class UserInformationDataResponse(BaseModel):
     name: str
     tenant_key: str
     union_id: str
-    user_id: str
+    user_id: Optional[str] = None
 
 
 class UserInformationResponse(BaseModel):

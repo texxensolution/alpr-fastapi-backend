@@ -1,11 +1,13 @@
 import asyncio
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 from src.services.synchronize import LarkSynchronizer
 from src.services.analytics import LarkUsersAnalytics
 from datetime import date
 from src.core.dependencies import get_db, get_base_manager
 # from sqlalchemy import create_engine
 
-# prod_db_url = "postgresql://repoai:repoai-repoai@172.16.1.17:5432/repo-ai-db"
+prod_db_url = "postgresql://repoai:repoai-repoai@172.16.1.17:5432/repo-ai-db"
 
 # prod_engine = create_engine(prod_db_url, echo=False)
 
@@ -13,7 +15,14 @@ from src.core.dependencies import get_db, get_base_manager
 
 # analytics.summary()
 lark = get_base_manager()
-db = next(get_db())
+engine = create_engine(prod_db_url, echo=False)
+
+SessionLocal = sessionmaker(
+    bind=engine
+)
+
+db = SessionLocal()
+
 
 analytics = LarkUsersAnalytics(db)
 
@@ -24,8 +33,4 @@ synchronizer = LarkSynchronizer(
 )
 
 target_date = date.today(),
-# response = synchronizer.start_watching()
 asyncio.run(synchronizer.start_watching())
-
-# result = synchronizer.get_buffered_refs()
-# print('buffered refs:', result)
