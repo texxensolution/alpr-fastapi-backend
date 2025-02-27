@@ -9,7 +9,10 @@ from src.lark.lark import Lark
 from src.core.config import settings
 from src.lark.exceptions import LarkBaseHTTPException
 from src.utils.date_utils import get_date_timestamp, timestamp_to_date
+from src.utils.loggers import logging
 
+
+logger = logging.getLogger(__name__)
 
 class LarkSynchronizer:
     def __init__(
@@ -19,6 +22,7 @@ class LarkSynchronizer:
         analytics: LarkUsersAnalytics,
         waiting_period: float = 2.0
     ):
+        logger.info("Initializing LarkSynchronizer")
         self.db = db
         self.lark = lark
         self.analytics = analytics
@@ -27,6 +31,7 @@ class LarkSynchronizer:
 
     async def start_watching(self):
         while not self.syncing_event.is_set():
+            logger.info("syncing at %s", datetime.now())
             target_date = date.today()
             
             # First check if there are any records that don't have lark_record_id
@@ -38,12 +43,12 @@ class LarkSynchronizer:
                     target_date=target_date
                 )
             else:
-                print("no refs without record id")
+                logger.info("no refs without record id")
             
             # records that is not yet synchronize to remote lark base storage
             buffered_refs = self.get_buffered_refs(target_date)
 
-            print('buffered_refs_count', len(buffered_refs))
+            logger.info('buffered_refs_count', len(buffered_refs))
             
             # create a request payload for updating corresponding record on lark base
             def union_id_extractor(ref: LarkHistoryReference):
@@ -57,7 +62,7 @@ class LarkSynchronizer:
             )
             
             summaries = self.analytics.summary(result)
-            print("done computing summary!")
+            logger.info("done computing summary!")
 
             # convert the summary to lark payload
             payload = self._mass_update_ref_payload(
@@ -85,13 +90,12 @@ class LarkSynchronizer:
                 record["record_id"]
                 for record in response.data["records"]
             ]
-            print('record_ids', record_ids)
 
             self.mass_mark_as_sync(
                 record_ids,
                 target_date
             )
-            print("synced~!")
+            logger.info("synced~!")
             
             await asyncio.sleep(self.waiting_period)
     

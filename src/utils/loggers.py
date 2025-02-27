@@ -1,21 +1,12 @@
-from sqlalchemy.orm import Session
-from core.models import Log
-from typing import Literal
+import logging
+import sys
 
+# Configure the logger
+logging.basicConfig(
+    level=logging.DEBUG,  # Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Print logs to stdout
+    ]
+)
 
-def log_entry(
-    session: Session, 
-    scanned_text: str,
-    name: str,
-    event_type: Literal['PLATE_CHECKING', 'PLATE_NOTIFICATION']
-):
-    try:
-        counter_entry = Log(
-            scanned_text=scanned_text,
-            name=name,
-            event_type=event_type
-        )
-        session.add(counter_entry)
-        session.commit()
-    except Exception:
-        session.rollback()

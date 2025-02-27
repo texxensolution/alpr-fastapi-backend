@@ -17,16 +17,8 @@ from src.db.logger import (
     StatisticsQueryResult
 )
 from typing import List, Tuple
+from src.utils.loggers import logging
 
-
-# Configure the logger
-logging.basicConfig(
-    level=logging.DEBUG,  # Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout)  # Print logs to stdout
-    ]
-)
 
 logger = logging.getLogger(__name__)
 

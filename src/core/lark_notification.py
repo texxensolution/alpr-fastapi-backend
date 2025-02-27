@@ -58,10 +58,8 @@ class LarkNotification:
 
             try:
                 await self._notify_web_app(data)
-            except Exception as err:
-                print(f"NotifyWebAppError: {str(err)} server down")
-
-            print(f"Notified the group_chat: {group_chat_id}, status: success")
+            except Exception:
+                pass
         except Exception as err:
             print(f"NotifyError: {str(err)}")
 
@@ -91,43 +89,11 @@ class LarkNotification:
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(
+            await client.post(
                 url=settings.NOTIFY_WEB_APP_URL,
                 json=_data
             )
-
-            print(f"notify_web_app: {response.status_code}")
             
-#         import requests
-# import base64
-# import json
-# from datetime import datetime
-# import time
-
-# def send_detection(image_path, plate_number, vehicle_model, status,lat=13.8423815, lon=121.191605, device_name="@Alcos, Rommel De Castro device"):
-
-#     # API endpoint
-#     url = 'https://5000-01jk4y1hmqe7mqtgqaz867xtrs.cloudspaces.litng.ai:5000/api/detections'
-
-#     # Read and encode the image
-#     with open(image_path, 'rb') as image_file:
-#         image_data = base64.b64encode(image_file.read()).decode('utf-8')
-
-#     current_time = datetime.now()
-
-
-
-    # except FileNotFoundError:
-    #     print(f"Error: Image file not found at {image_path}")
-    #     return None
-    # except requests.exceptions.RequestException as e:
-    #     print(f"Error sending detection: {e}")
-    #     return None
-    # except Exception as e:
-    #     print(f"Unexpected error: {e}")
-    #     return None
-        
-
     async def _get_gc_members_id(self, group_chat_id: str) -> list[str]:
         response = await self._client.group_chat.get_members(
             group_chat_id
