@@ -53,18 +53,11 @@ class LarkNotification:
                 pass
 
             if data.status == "POSITIVE":
-                async with asyncio.TaskGroup() as tg:
-                    tasks = [
-                        tg.create_task(
-                            self._client.messenger.buzz_message(
-                                message_id=message_response.data.message_id,
-                                group_members_union_id=members_id_chunk
-                            )
-                        )
-                        for members_id_chunk in members_id_chunks
-                    ]
-                    statuses = [task.result().code for task in tasks]
-                    print(f"Buzz Statuses: {statuses}")
+                for members_id_chunk in members_id_chunks:
+                    await self._client.messenger.buzz_message(
+                        message_id=message_response.data.message_id,
+                        group_members_union_id=members_id_chunk
+                    )
 
         except Exception as err:
             print(f"NotifyError: {str(err)}")
