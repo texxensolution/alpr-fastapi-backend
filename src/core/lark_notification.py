@@ -1,5 +1,6 @@
 import os
 import httpx
+import asyncio
 from datetime import datetime
 import aiofiles
 import base64
@@ -46,20 +47,25 @@ class LarkNotification:
             message_response = await self._client.messenger.send_message(
                 send_message_obj
             )
-
-
-            if data.status == "POSITIVE":
-                for members_id_chunk in members_id_chunks:
-                    response = await self._client.messenger.buzz_message(
-                        message_id=message_response.data.message_id,
-                        group_members_union_id=members_id_chunk
-                    )
-                    print('notify-response', response)
-
             try:
                 await self._notify_web_app(data)
             except Exception:
                 pass
+
+            if data.status == "POSITIVE":
+                async with asyncio.TaskGroup() as tg:
+                    tasks = [
+                        tg.create_task(
+                            self._client.messenger.buzz_message(
+                                message_id=message_response.data.message_id,
+                                group_members_union_id=members_id_chunk
+                            )
+                        )
+                        for members_id_chunk in members_id_chunks
+                    ]
+                    statuses = [task.result().code for task in tasks]
+                    print(f"Buzz Statuses: {statuses}")
+
         except Exception as err:
             print(f"NotifyError: {str(err)}")
 

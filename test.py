@@ -1,23 +1,27 @@
-import cv2
-import pytesseract
-import numpy as np
-import imutils
-from doctr.io import DocumentFile
-from doctr.models import ocr_predictor
+import asyncio
+import time
+import httpx
 
+async def fetch_post(id):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f'https://jsonplaceholder.typicode.com/posts/{id}')
+        return response.json()
 
+async def main():
+    start = time.time()
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(fetch_post(i)) for i in range(1, 11)]
+    responses = [task.result() for task in tasks]
+    print('response', responses)
+    print('Time taken:', time.time() - start)
+    return responses
+        
+async def res():
+    start = time.time()
+    for i in range(1, 10):
+        response = await fetch_post(i)
+        print(response)
+    time_taken = time.time() - start
+    print('Time taken:', time_taken)
 
-# Load the image
-target_image = "data/3.jpg"
-# image = cv2.imread(target_image)
-model = ocr_predictor(pretrained=True)
-# PDF
-doc = DocumentFile.from_images(target_image)
-# Analyze
-result = model(doc)
-print(result)
-# resized_image = cv2.resize(image, (120, 120), interpolation=cv2.INTER_AREA)
-
-# # Save the processed image with bounding box
-# cv2.imwrite(target_image, resized_image)
-# print(pytesseract.image_to_string(target_image))
+asyncio.run(res())
