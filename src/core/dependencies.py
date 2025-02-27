@@ -78,7 +78,6 @@ def get_status_manager() -> StatusManager:
 bearer_scheme = HTTPBearer()
 
 def get_token_from_headers(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
-    print('credentials', credentials)
     return credentials.credentials
 
 GetBearerTokenFromHeaders = Annotated[HTTPAuthorizationCredentials, Depends(get_token_from_headers)]
