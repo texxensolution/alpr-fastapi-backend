@@ -22,7 +22,6 @@ class LarkSynchronizer:
         analytics: LarkUsersAnalytics,
         waiting_period: float = 2.0
     ):
-        logger.info("Initializing LarkSynchronizer")
         self.db = db
         self.lark = lark
         self.analytics = analytics
@@ -30,6 +29,7 @@ class LarkSynchronizer:
         self.waiting_period = waiting_period
 
     async def start_watching(self):
+        logger.info("syncing started!")
         while not self.syncing_event.is_set():
             logger.info("syncing at %s", datetime.now())
             target_date = date.today()
