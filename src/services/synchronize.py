@@ -29,9 +29,9 @@ class LarkSynchronizer:
         self.waiting_period = waiting_period
 
     async def start_watching(self):
-        logger.info("syncing started!")
+        logger.debug("syncing started!")
         while not self.syncing_event.is_set():
-            logger.info("syncing at %s", datetime.now())
+            logger.debug("syncing at %s", datetime.now())
             target_date = date.today()
             
             # First check if there are any records that don't have lark_record_id
@@ -43,12 +43,12 @@ class LarkSynchronizer:
                     target_date=target_date
                 )
             else:
-                logger.info("no refs without record id")
+                logger.debug("no refs without record id")
             
             # records that is not yet synchronize to remote lark base storage
             buffered_refs = self.get_buffered_refs(target_date)
 
-            logger.info('buffered_refs_count: %s', len(buffered_refs))
+            logger.debug('buffered_refs_count: %s', len(buffered_refs))
             
             # create a request payload for updating corresponding record on lark base
             def union_id_extractor(ref: LarkHistoryReference):
@@ -62,7 +62,7 @@ class LarkSynchronizer:
             )
             
             summaries = self.analytics.summary(result)
-            logger.info("done computing summary!")
+            logger.debug("done computing summary!")
 
             # convert the summary to lark payload
             payload = self._mass_update_ref_payload(
@@ -73,7 +73,7 @@ class LarkSynchronizer:
             current_timestamp = datetime.now()
 
             if len(payload) == 0:
-                print(f"🔄 skip sync ~~ 🕒 {current_timestamp}")
+                logger.debug("🔄 skip sync 🕒 %s", current_timestamp)
                 await asyncio.sleep(3)
                 continue
                 
@@ -109,7 +109,6 @@ class LarkSynchronizer:
         multiple_refs_payload = self.create_multiple_refs_payload(
             union_ids=union_ids, target_date=target_date
         )
-        print('multiple_refs_payload', multiple_refs_payload)
         
         response = await self.lark.base.create_records(
             app_token=settings.BASE_LOGS_APP_TOKEN,
@@ -128,10 +127,6 @@ class LarkSynchronizer:
 
         self.db.bulk_update_mappings(LarkHistoryReference, need_to_be_updated_record)
         self.db.commit()
-        print("updated~")
-        # print('response', response.data)
-
-    # def 
     
     def create_multiple_refs_payload(
         self,
