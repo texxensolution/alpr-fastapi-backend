@@ -48,7 +48,7 @@ class LarkSynchronizer:
             # records that is not yet synchronize to remote lark base storage
             buffered_refs = self.get_buffered_refs(target_date)
 
-            logger.info('buffered_refs_count', len(buffered_refs))
+            logger.info('buffered_refs_count: %s', len(buffered_refs))
             
             # create a request payload for updating corresponding record on lark base
             def union_id_extractor(ref: LarkHistoryReference):
