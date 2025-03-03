@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.core.dependencies import get_token_manager, get_db
-from lark.token_manager import TokenManager, UserInformationDataResponse
+from src.lark.token_manager import TokenManager, UserInformationDataResponse
 from src.db.user import find_lark_account, create_lark_account
 from src.core.dtos import LarkAccountDTO
 

@@ -21,10 +21,9 @@ from pydantic import BaseModel
 from typing import Literal, List
 from src.core.dtos import Account, Detection
 from src.utils.file_utils import store_file
-from lark.token_manager import TokenManager
+from src.lark.token_manager import TokenManager
 from src.utils.plate_helper import normalize_plate
 from src.utils.rate_limiter import RateLimiter
-from src.db.logger import persist_log_entry
 from src.db.user import find_lark_account
 from sqlalchemy.orm import Session
 from src.core.dependencies import settings

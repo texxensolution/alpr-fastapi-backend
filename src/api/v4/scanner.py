@@ -5,6 +5,7 @@ from fastapi import (
     File,
     UploadFile,
     BackgroundTasks,
+    HTTPException
 )
 from src.core.config import settings
 from typing import List, Tuple
@@ -18,12 +19,10 @@ from src.core.dependencies import (
     GetLoggerSession,
     GetCurrentUserCredentials,
     LarkNotificationDepends,
-    GetDatabaseSession
 )
-from src.utils.file_utils import store_file, delete_file
+from src.utils.file_utils import store_file
 from src.utils.plate_helper import normalize_plate
 from src.core.account_status import Account
-from sqlalchemy.orm import Session
 from src.utils.rate_limiter import RateLimiter
 
 
@@ -62,6 +61,12 @@ class AccountDTO(BaseModel):
     vehicle_model: str
     ch_code: str
     endo_date: str
+
+
+class AlertNotifyGroupChat(BaseModel):
+    plate: str
+    detected_type: str
+    location: Tuple[float, float]
 
 
 class PlateCheckingResponse(BaseModel):
@@ -179,10 +184,11 @@ async def notify_group_chat(
                 user_id=user.user_id,
                 latitude=latitude,
                 longitude=longitude,
-                detected_by=user.name
+                detected_by=user.name,
+                detected_type=detection_type
             )
             background_tasks.add_task(
-                lark_notification.notify,
+                lark_notification.detection_notify,
                 data=detection,
                 group_chat_id=settings.MAIN_GC_ID
             )
@@ -209,10 +215,11 @@ async def notify_group_chat(
                 user_id=user.user_id,
                 latitude=latitude,
                 longitude=longitude,
-                detected_by=user.name
+                detected_by=user.name,
+                detected_type=detection_type
             )
             background_tasks.add_task(
-                lark_notification.notify,
+                lark_notification.detection_notify,
                 data=detection,
                 group_chat_id=settings.MAIN_GC_ID
             )
@@ -220,3 +227,52 @@ async def notify_group_chat(
             "message": "queued notification sent", 
             "type": "for_confirmation"
         })
+
+@router.post("/notify/group-chat/manual")
+async def alert_group_chat_manual_search(
+    credentials: GetCurrentUserCredentials,
+    form: AlertNotifyGroupChat,
+    logger: GetLoggerSession,
+    lark_notification: LarkNotificationDepends,
+    background_tasks: BackgroundTasks,
+    account_status: AccountStatus = Depends(get_account_status)
+):
+    if not rate_limiter.can_proceed(form.plate):
+        return ScannerResponse.model_validate({
+            "message": "skipped notification", 
+            "type": "skipped"
+        })
+
+    user, user_id = credentials
+
+    await logger.request(
+        plate_no=form.plate,
+        user_id=user_id,
+        detection_type=form.detected_type,
+        event_type=EventType.POSITIVE_PLATE_NOTIFICATION.value,
+        location=form.location
+    )
+    
+    try:
+        accounts = account_status.get_account_info_by_plate(form.plate)
+        background_tasks.add_task(
+            lark_notification.manual_search_notify,
+            data=Detection(
+                plate_number=form.plate,
+                status='POSITIVE',
+                user_id=user.user_id,
+                latitude=form.location[0],
+                longitude=form.location[1],
+                detected_by=user.name,
+                detected_type=form.detected_type,
+                accounts=[accounts],
+            ),
+            group_chat_id=settings.MAIN_GC_ID
+        )
+    except Exception as err:
+        print("notification err:", err)
+    
+    return ScannerResponse.model_validate({
+        "message": "queued notification sent", 
+        "type": "positive"
+    })

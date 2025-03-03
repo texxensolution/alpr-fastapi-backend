@@ -1,7 +1,6 @@
 import jwt
-from dotenv import load_dotenv
-from lark.token_manager import TokenManager
 from src.core.status_manager import StatusManager
+from src.lark.token_manager import TokenManager
 from src.core.logger import Logger
 from src.lark.lark import Lark
 from src.core.account_status import AccountStatus
@@ -31,6 +30,9 @@ websocket_manager = WebsocketManager()
 
 lark_notification = LarkNotification(lark=lark)
 
+def get_token_manager():
+    return TokenManager(settings.CHOPPER_APP_ID, settings.CHOPPER_APP_SECRET)
+
 def get_base_manager() -> Lark:
     return lark
 
@@ -56,16 +58,6 @@ def get_db():
     finally:
         db.close()
         
-    
-
-def get_token_manager():
-    load_dotenv()
-
-    return TokenManager(
-        app_id=settings.CHOPPER_APP_ID,
-        app_secret=settings.CHOPPER_APP_SECRET
-    )
-
     
 status_manager = StatusManager(
     db=next(get_db())

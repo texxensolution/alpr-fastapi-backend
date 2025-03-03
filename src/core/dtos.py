@@ -54,20 +54,18 @@ class QueuedPlateDetected(BaseModel):
     name: str
 
 
+NotificationStatus = Literal['POSITIVE', 'FOR_CONFIRMATION', 'NOT_FOUND']
 class Detection(BaseModel):
     plate_number: str
-    status: Literal[
-        'POSITIVE',
-        'FOR_CONFIRMATION',
-        'NOT_FOUND'
-    ]
+    status: NotificationStatus
     accounts: List[Account]
-    file_path: str
+    file_path: Optional[str] = None
     union_id: Optional[str] = None
     user_id: Optional[str] = None
     latitude: float
     longitude: float
     detected_by: str
+    detected_type: str
 
 
 class CardTemplateDataField(BaseModel):
