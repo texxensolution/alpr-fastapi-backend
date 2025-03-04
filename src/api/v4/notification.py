@@ -106,7 +106,7 @@ async def notify_group_chat(
             detection = Detection(
                 plate_number=plate,
                 file_path=file_path,
-                accounts=[similar_accounts],
+                accounts=similar_accounts,
                 status='FOR_CONFIRMATION',
                 union_id=user.union_id,
                 user_id=user.user_id,
@@ -120,7 +120,7 @@ async def notify_group_chat(
             detection = Detection(
                 plate_number=plate,
                 file_path=file_path,
-                accounts=[similar_accounts],
+                accounts=similar_accounts,
                 status='FOR_CONFIRMATION',
                 username=user.username,
                 latitude=latitude,
