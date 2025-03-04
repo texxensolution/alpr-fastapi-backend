@@ -13,8 +13,13 @@ def manual_search_message_builder(
     content += f"- Vehicle: {positive_account.car_model}\n"
     content += f"- Endorsement Date: {positive_account.endo_date}\n"
     content += f"- CH Code: {positive_account.ch_code}\n\n"
-    content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
+    if data.user_type == 'internal':
+        content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
+    elif data.user_type == 'external':
+        content += f"\n 📷 Sent from @{data.username} (freelance) device"
+
     content += f"\n 📍 Location (lat, lon): ({data.latitude}, {data.longitude})"
+
     template_data_field = CardTemplateDataField(
         template_id=card_id,
         template_variable={

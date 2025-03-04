@@ -16,17 +16,20 @@ def detection_message_builder(
     content = f"Detected: **{data.plate_number}**\n"
     
     if not is_positive:
-        content += "\n\n"
+        content += "\n"
         content += "**Similar accounts**:\n"
 
     for positive_account in data.accounts:
         content += f"Client: **{positive_account.plate}** [**{positive_account.car_model}** - **{positive_account.client}**]\n"
         content += f"- Vehicle: {positive_account.car_model}\n"
-        # content += f"- Client Name: {positive_account.client}\n"
         content += f"- Endorsement Date: {positive_account.endo_date}\n"
         content += f"- CH Code: {positive_account.ch_code}\n\n"
 
-    content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
+    if data.user_type == 'internal':
+        content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
+    elif data.user_type == 'external':
+        content += f"\n 📷 Sent from @{data.username} (freelance) device"
+
     content += f"\n 📍 Location (lat, lon): ({data.latitude}, {data.longitude})"
 
     template_data_field = CardTemplateDataField(
@@ -34,8 +37,7 @@ def detection_message_builder(
         template_variable={
             "title": title,
             "body": content,
-            "image": image_key,
-            "mention": data.union_id
+            "image": image_key
         }
     )
 

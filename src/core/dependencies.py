@@ -63,7 +63,6 @@ status_manager = StatusManager(
     db=next(get_db())
 )
 
-
 def get_status_manager() -> StatusManager:
     return status_manager
 

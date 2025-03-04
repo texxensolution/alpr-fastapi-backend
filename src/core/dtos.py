@@ -1,4 +1,4 @@
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Tuple
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -62,10 +62,12 @@ class Detection(BaseModel):
     file_path: Optional[str] = None
     union_id: Optional[str] = None
     user_id: Optional[str] = None
+    username: Optional[str] = None
     latitude: float
     longitude: float
     detected_by: str
     detected_type: str
+    user_type: Literal['internal', 'external'] = 'internal'
 
 
 class CardTemplateDataField(BaseModel):
@@ -97,3 +99,21 @@ class ScannerResponse(BaseModel):
     message: str
     type: str
 
+
+class DetectionType(Enum):
+    PLATES = 'plates'
+    STICKER = 'sticker'
+
+
+class EventType(Enum):
+    PLATE_CHECKING = 'PLATE_CHECKING'
+    POSITIVE_PLATE_NOTIFICATION = 'POSITIVE_PLATE_NOTIFICATION'
+    FOR_CONFIRMATION_NOTIFICATION = 'FOR_CONFIRMATION_NOTIFICATION'
+
+
+
+class AlertNotifyGroupChat(BaseModel):
+    plate: str
+    detected_type: str
+    location: Tuple[float, float]
+    

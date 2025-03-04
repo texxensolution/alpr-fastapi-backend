@@ -1,6 +1,6 @@
 import httpx
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List, Literal, Optional
 from .token_manager import TokenManager
 from .exceptions import LarkBaseHTTPException
 
@@ -22,7 +22,7 @@ class GetGroupMemberListDataField(BaseModel):
 class GetGroupMemberListResponse(BaseModel):
     code: int
     msg: str
-    data: GetGroupMemberListDataField
+    data: Optional[GetGroupMemberListDataField] = None
 
 
 class GroupChatManager:

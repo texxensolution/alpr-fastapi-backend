@@ -26,8 +26,8 @@ router = APIRouter(
 
 
 class BaseAuthRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
-    password: str = Field(min_length=8, max_length=64)
+    username: str 
+    password: str 
 
 
 class RegisterUserRequest(BaseAuthRequest):
@@ -70,6 +70,12 @@ async def login_user(
     request: LoginRequest,
     db: GetDatabaseSession
 ):
+    if request.username == "" or request.password == "":
+        return TokenResponse(
+            status='error',
+            msg='The credentials you provide is invalid.'
+        )
+        
     try:
         user = find_external_user(db=db, username=request.username)
     except Exception:

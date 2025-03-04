@@ -46,7 +46,7 @@ class UserTokenDataResponse(BaseModel):
 class UserTokenResponse(BaseModel):
     code: int
     message: str
-    data: UserTokenDataResponse
+    data: Optional[UserTokenDataResponse] = None
 
 
 class UserInformationDataResponse(BaseModel):
