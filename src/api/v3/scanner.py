@@ -87,7 +87,6 @@ async def plate_check(
         event_type='PLATE_CHECKING',
         detection_type='plates'
     )
-   
     if account := account_status.get_account_info_by_plate(plate_number):
         response = LicensePlateCheckResponse(
             plate=plate_number,
@@ -169,7 +168,7 @@ async def notify_group_chat(
             detected_by=lark_account.name
         )
         background_tasks.add_task(
-            lark_notification.notify,
+            lark_notification.detection_notify,
             data=detection,
             group_chat_id=settings.MAIN_GC_ID
         )
@@ -199,7 +198,7 @@ async def notify_group_chat(
             detected_by=lark_account.name
         )
         background_tasks.add_task(
-            lark_notification.notify,
+            lark_notification.detection_notify,
             data=detection,
             group_chat_id=settings.MAIN_GC_ID
         )
