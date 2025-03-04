@@ -76,9 +76,9 @@ async def login_user(
             msg='The credentials you provide is invalid.'
         )
         
-    try:
-        user = find_external_user(db=db, username=request.username)
-    except Exception:
+    user = find_external_user(db=db, username=request.username)
+
+    if not user:
         return TokenResponse(
             status='error',
             msg='The credentials you provide is invalid.'
