@@ -78,7 +78,7 @@ async def notify_group_chat(
                 username=user.username,
                 latitude=latitude,
                 longitude=longitude,
-                detected_by=user.name,
+                detected_by=user.username,
                 detected_type=detection_type,
                 user_type='external'
             )
@@ -125,7 +125,7 @@ async def notify_group_chat(
                 username=user.username,
                 latitude=latitude,
                 longitude=longitude,
-                detected_by=user.name,
+                detected_by=user.username,
                 detected_type=detection_type,
                 user_type='external'
             )
