@@ -66,7 +66,7 @@ class Detection(BaseModel):
     latitude: float
     longitude: float
     detected_by: str
-    detected_type: str
+    detected_type: Optional[str] = None
     user_type: Literal['internal', 'external'] = 'internal'
 
 
