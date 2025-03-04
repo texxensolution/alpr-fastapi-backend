@@ -104,35 +104,6 @@ async def login_user(
     return TokenResponse(status='error', msg='The credentials you provide is invalid.')
 
 
-@router.post('/user', response_model=BaseResponse)
-async def register_user(
-    request: RegisterUserRequest,
-    db: GetDatabaseSession
-):
-    try:
-        user = find_external_user(db=db, username=request.username)
-    except Exception:
-        user = None
-
-    if user:
-        return BaseResponse(
-            status='error',
-            msg=f"Username {request.username} is already taken."
-        )
-    
-    user = create_external_user(
-        db=db,
-        username=request.username,
-        hashed_password=get_password_hash(request.password)
-    )
-
-    if user:
-        return BaseResponse(
-            status='success',
-            msg='User successfully registered.'
-        )
-
-
 @router.get('/lark/user', response_model=LarkTokenResponse)
 async def get_lark_user(
     code: str,
