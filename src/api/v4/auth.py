@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Literal
 from sqlalchemy.orm import Session
-from src.db.user import create_external_user, find_external_user, find_lark_account, create_lark_account
-from src.core.dependencies import GetDatabaseSession, get_token_manager, get_db, GetCurrentUserCredentials, GetLarkClient
-from src.core.auth import get_password_hash, verify_password, create_access_token, TokenUser
+from src.db.user import find_external_user, find_lark_account, create_lark_account
+from src.core.dependencies import GetDatabaseSession, get_db, GetCurrentUserCredentials, GetLarkClient
+from src.core.auth import verify_password, create_access_token, TokenUser
 from src.core.dtos import LarkAccountDTO
 from src.core.models import User, LarkAccount
-from src.lark.token_manager import UserInformationDataResponse, TokenManager
+from src.lark.token_manager import UserInformationDataResponse
 
 
 class GetUserRequest(BaseModel):

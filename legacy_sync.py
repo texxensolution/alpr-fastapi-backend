@@ -108,7 +108,7 @@ async def logs_lark_sync(
         try:
             db = next(get_db())
             TARGET_LOG_DATE = date.today()
-            logger.debug("logging at: %s", datetime.now())
+            logger.info("logging at: %s", datetime.now())
 
             union_ids = get_ids_without_lark_ref_for_today(
                 session=db,
