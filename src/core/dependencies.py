@@ -1,4 +1,5 @@
 import jwt
+from sentry_sdk import set_user
 from src.core.status_manager import StatusManager
 from src.lark.token_manager import TokenManager
 from src.core.logger import Logger
@@ -128,11 +129,19 @@ async def get_current_user(
             union_id=user_id,
             db=db
         )
+        set_user({
+            "id": user_id,
+            "username": user.name
+        })
     elif user_type == 'external':
         user = find_external_user(
             db=db,
             username=user_id
         )
+        set_user({
+            "id": user.username,
+            "username": user.username
+        })
 
     return user, user_id
  
