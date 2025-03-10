@@ -17,6 +17,7 @@ from src.core.dtos import TokenUserType
 from src.db.user import find_external_user, find_lark_account
 from src.services.synchronize import LarkSynchronizer
 from src.services.analytics import LarkUsersAnalytics
+from src.core.device_tracking_manager import DeviceTrackingManager
 
 
 print("loaded environment settings.", settings)
@@ -71,11 +72,16 @@ bearer_scheme = HTTPBearer()
 def get_token_from_headers(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     return credentials.credentials
 
+device_tracking_manager = DeviceTrackingManager()
+def get_tracking_device_manager():
+    return device_tracking_manager
+
 GetBearerTokenFromHeaders = Annotated[HTTPAuthorizationCredentials, Depends(get_token_from_headers)]
 GetStatusManager = Annotated[StatusManager, Depends(get_status_manager)]
 LarkNotificationDepends = Annotated[LarkNotification, Depends(get_lark_notification)]
 GetDatabaseSession = Annotated[Session, Depends(get_db)]
 GetLarkClient = Annotated[Lark, Depends(get_lark_client)]
+GetTrackingDeviceManager = Annotated[DeviceTrackingManager, Depends(get_tracking_device_manager)]
 
 
 def get_synchronizer(

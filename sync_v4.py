@@ -7,9 +7,6 @@ from datetime import date
 from src.core.dependencies import get_base_manager
 from src.core.config import settings
 
-# prod_db_url = "postgresql://repoai:repoai-repoai@172.16.1.17:5432/repo-ai-db"
-
-# analytics.summary()
 lark = get_base_manager()
 engine = create_engine(settings.DATABASE_URL, echo=False)
 

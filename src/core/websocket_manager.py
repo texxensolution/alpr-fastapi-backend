@@ -20,7 +20,7 @@ class WebsocketManager:
     def disconnect(self, websocket: WebSocket):
         self._active_connections.remove(websocket)
     
-    async def send_message_to(
+    async def send_message(
         self,
         message: str,
         websocket: WebSocket

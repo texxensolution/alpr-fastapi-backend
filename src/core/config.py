@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     JWT_ALGORITHM: str = 'HS256'
 
+    # Sentry
+    SENTRY_DSN: str
+
     class Config:
         env_file: str = ".env"
 
