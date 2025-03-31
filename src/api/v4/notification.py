@@ -75,7 +75,7 @@ async def notify_group_chat(
             user_id=user.username if isinstance(user, User) else None,
             latitude=latitude,
             longitude=longitude,
-            detected_by=user.name,
+            detected_by=user.name if isinstance(user, LarkAccount) else user.username,
             detected_type=detection_type,
             user_type="internal" if isinstance(user, LarkAccount) else "external"
         )
@@ -110,7 +110,7 @@ async def notify_group_chat(
             user_id=user.username if isinstance(user, User) else None,
             latitude=latitude,
             longitude=longitude,
-            detected_by=user.name,
+            detected_by=user.name if isinstance(user, LarkAccount) else user.username,
             detected_type=detection_type,
             user_type='internal' if isinstance(user, LarkAccount) else "external"
         )
@@ -160,7 +160,7 @@ async def alert_group_chat_manual_search(
             user_id=user.user_id,
             latitude=form.location[0],
             longitude=form.location[1],
-            detected_by=user.name,
+            detected_by=user.name if isinstance(user, LarkAccount) else user.username,
             detected_type=form.detected_type,
             accounts=[accounts],
             user_type='internal' if isinstance(user, LarkAccount) else 'external'
