@@ -29,8 +29,8 @@ class LarkNotification:
     ):
         try:
             payload = manual_search_message_builder(data)
-            members_id = await self._get_gc_members_id(group_chat_id)
-            members_id_chunks = list(chunked(members_id, chunked_buzz_size))
+            # members_id = await self._get_gc_members_id(group_chat_id)
+            # members_id_chunks = list(chunked(members_id, chunked_buzz_size))
             send_message_obj = SendMessagePayload(
                 receive_id=group_chat_id,
                 msg_type="interactive",
@@ -41,12 +41,12 @@ class LarkNotification:
                 await self._notify_web_app(data)
             except Exception:
                 pass
-            if data.status == "POSITIVE":
-                for members_id_chunk in members_id_chunks:
-                    await self._client.messenger.buzz_message(
-                        message_id=message_response.data.message_id,
-                        group_members_union_id=members_id_chunk
-                    )
+            # if data.status == "POSITIVE":
+            #     for members_id_chunk in members_id_chunks:
+            #         await self._client.messenger.buzz_message(
+            #             message_id=message_response.data.message_id,
+            #             group_members_union_id=members_id_chunk
+            #         )
         except Exception as err:
             print(f"NotifyError: {str(err)}")
             
@@ -65,10 +65,10 @@ class LarkNotification:
                 data=data,
                 image_key=image_key
             )
-            members_id = await self._get_gc_members_id(
-                group_chat_id
-            )
-            members_id_chunks = list(chunked(members_id, chunked_buzz_size))
+            # members_id = await self._get_gc_members_id(
+            #     group_chat_id
+            # )
+            # members_id_chunks = list(chunked(members_id, chunked_buzz_size))
             send_message_obj = SendMessagePayload(
                 receive_id=group_chat_id,
                 msg_type="interactive",
@@ -81,12 +81,12 @@ class LarkNotification:
                 await self._notify_web_app(data)
             except Exception:
                 pass
-            if data.status == "POSITIVE":
-                for members_id_chunk in members_id_chunks:
-                    await self._client.messenger.buzz_message(
-                        message_id=message_response.data.message_id,
-                        group_members_union_id=members_id_chunk
-                    )
+            # if data.status == "POSITIVE":
+            #     for members_id_chunk in members_id_chunks:
+            #         await self._client.messenger.buzz_message(
+            #             message_id=message_response.data.message_id,
+            #             group_members_union_id=members_id_chunk
+            #         )
         except Exception as err:
             print(f"NotifyError: {str(err)}")
 
