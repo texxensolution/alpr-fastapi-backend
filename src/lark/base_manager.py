@@ -190,8 +190,7 @@ class BaseManager:
 
         tenant_response = await self._token_manager.get_tenant_access_token()
 
-        headers = {"Authorization": f"Bearer {
-            tenant_response.tenant_access_token}"}
+        headers = {"Authorization": f"Bearer {tenant_response.tenant_access_token}"}
 
         params = {"user_id_type": user_id_type, "page_size": page_size}
 

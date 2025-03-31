@@ -1,4 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Form, File, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Form,
+    File,
+    UploadFile
+)
 from src.core.dependencies import (
     LarkNotificationDepends,
     GetLoggerSession,
@@ -19,7 +26,10 @@ from src.utils.rate_limiter import RateLimiter
 from src.utils.file_utils import store_file
 
 
-router = APIRouter(prefix='/api/v4', tags=['Notification 4.0'])
+router = APIRouter(
+    prefix='/api/v4',
+    tags=['Notification 4.0']
+)
 
 rate_limiter = RateLimiter(80)
 
@@ -55,38 +65,27 @@ async def notify_group_chat(
             event_type=EventType.POSITIVE_PLATE_NOTIFICATION.value,
             location=[latitude, longitude]
         )
-        if isinstance(user, LarkAccount):
-            detection = Detection(
-                plate_number=plate,
-                file_path=file_path,
-                accounts=[account],
-                status='POSITIVE',
-                union_id=user.union_id,
-                user_id=user.user_id,
-                latitude=latitude,
-                longitude=longitude,
-                detected_by=user.name,
-                detected_type=detection_type,
-                user_type='internal'
-            )
-        elif isinstance(user, User):
-            detection = Detection(
-                plate_number=plate,
-                file_path=file_path,
-                accounts=[account],
-                status='POSITIVE',
-                username=user.username,
-                latitude=latitude,
-                longitude=longitude,
-                detected_by=user.username,
-                detected_type=detection_type,
-                user_type='external'
-            )
+
+        detection = Detection(
+            plate_number=plate,
+            file_path=file_path,
+            accounts=[account],
+            status='POSITIVE',
+            union_id=user.union_id,
+            user_id=user.user_id,
+            latitude=latitude,
+            longitude=longitude,
+            detected_by=user.name,
+            detected_type=detection_type,
+            user_type="internal" if isinstance(user, LarkAccount) else "external"
+        )
+
         background_tasks.add_task(
             lark_notification.detection_notify,
             data=detection,
-            group_chat_id=settings.MAIN_GC_ID
+            group_chat_id=settings.POSITIVE_GC_ID
         )
+      
         return ScannerResponse.model_validate({
             "message": "queued notification sent", 
             "type": "positive"
@@ -102,38 +101,24 @@ async def notify_group_chat(
             location=[latitude, longitude]
         )
 
-        if isinstance(user, LarkAccount):
-            detection = Detection(
-                plate_number=plate,
-                file_path=file_path,
-                accounts=similar_accounts,
-                status='FOR_CONFIRMATION',
-                union_id=user.union_id,
-                user_id=user.user_id,
-                latitude=latitude,
-                longitude=longitude,
-                detected_by=user.name,
-                detected_type=detection_type,
-                user_type='internal'
-            )
-        elif isinstance(user, User):
-            detection = Detection(
-                plate_number=plate,
-                file_path=file_path,
-                accounts=similar_accounts,
-                status='FOR_CONFIRMATION',
-                username=user.username,
-                latitude=latitude,
-                longitude=longitude,
-                detected_by=user.username,
-                detected_type=detection_type,
-                user_type='external'
-            )
+        detection = Detection(
+            plate_number=plate,
+            file_path=file_path,
+            accounts=similar_accounts,
+            status='FOR_CONFIRMATION',
+            union_id=user.union_id,
+            user_id=user.user_id,
+            latitude=latitude,
+            longitude=longitude,
+            detected_by=user.name,
+            detected_type=detection_type,
+            user_type='internal' if isinstance(user, LarkAccount) else "external"
+        )
             
         background_tasks.add_task(
             lark_notification.detection_notify,
             data=detection,
-            group_chat_id=settings.MAIN_GC_ID
+            group_chat_id=settings.FOR_CONFIRMATION_GC_ID
         )
         return ScannerResponse.model_validate({
             "message": "queued notification sent", 
@@ -168,34 +153,23 @@ async def alert_group_chat_manual_search(
     
     try:
         accounts = account_status.get_account_info_by_plate(form.plate)
-        if isinstance(user, LarkAccount):
-            data=Detection(
-                plate_number=form.plate,
-                status='POSITIVE',
-                user_id=user.user_id,
-                latitude=form.location[0],
-                longitude=form.location[1],
-                detected_by=user.name,
-                detected_type=form.detected_type,
-                accounts=[accounts],
-                user_type='internal'
-            )
-        elif isinstance(user, User):
-            data = Detection(
-                plate_number=form.plate,
-                status='POSITIVE',
-                latitude=form.location[0],
-                username=user.username,
-                longitude=form.location[1],
-                detected_by=user.username,
-                detected_type=form.detected_type,
-                accounts=[accounts],
-                user_type='external'
-            )
+        
+        data=Detection(
+            plate_number=form.plate,
+            status='POSITIVE',
+            user_id=user.user_id,
+            latitude=form.location[0],
+            longitude=form.location[1],
+            detected_by=user.name,
+            detected_type=form.detected_type,
+            accounts=[accounts],
+            user_type='internal' if isinstance(user, LarkAccount) else 'external'
+        )
+
         background_tasks.add_task(
             lark_notification.manual_search_notify,
             data=data,
-            group_chat_id=settings.MAIN_GC_ID
+            group_chat_id=settings.POSITIVE_GC_ID
         )
     except Exception as err:
         print("notification err:", err)

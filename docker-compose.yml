@@ -25,18 +25,10 @@ services:
     container_name: fastapi-app
     env_file: 
       - .env
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: ${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
     ports:
-      - "8000:8000"
+      - "80:80"
     depends_on:
       - db
-      - redis
     volumes:
       - uploads_data:/app/uploads  # Mount the uploads_data volume
       - data:/app/data
@@ -44,49 +36,24 @@ services:
       - app-network
     restart: always  # Automatically restart the service
 
-  # Redis service
-  redis:
-    image: redis:6
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-    restart: always  # Automatically restart the service
 
-  # RQ Worker service
-  rq-worker:
-    build: .
-    container_name: rq-worker
-    command: ["rq", "worker", "default"]
-    volumes:
-      - .:/app
-      - uploads_data:/app/uploads  # Mount the uploads_data volume for access
-    environment:
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      - redis
-    networks:
-      - app-network
-    restart: always  # Automatically restart the service
-
-  sync-v4:
-    build: .
-    container_name: sync-v4
-    command: ["python", "sync_v4.py"]
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: ${POSTGRES_DB}
-    depends_on:
-      - db
-    volumes:
-      - .:/app
-    networks:
-      - app-network
-    restart: always  # Restart on failure
+  # sync-v4:
+  #   build: .
+  #   container_name: sync-v4
+  #   command: ["python", "sync_v4.py"]
+  #   environment:
+  #     DB_HOST: db
+  #     DB_PORT: 5432
+  #     DB_USER: ${POSTGRES_USER}
+  #     DB_PASSWORD: ${POSTGRES_PASSWORD}
+  #     DB_NAME: ${POSTGRES_DB}
+  #   depends_on:
+  #     - db
+  #   volumes:
+  #     - .:/app
+  #   networks:
+  #     - app-network
+  #   restart: always  # Restart on failure
     
 volumes:
   postgres_data:  # Persistent storage for PostgreSQL

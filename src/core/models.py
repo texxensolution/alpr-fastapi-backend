@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import TIMESTAMP, text, Date, func, JSON, DateTime
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.schema import PrimaryKeyConstraint
@@ -5,7 +6,6 @@ from datetime import date, datetime
 from sqlalchemy.dialects.postgresql import UUID
 from typing import Literal, Optional, Union
 from dataclasses import dataclass
-import uuid
 
 class Base(DeclarativeBase):
     pass

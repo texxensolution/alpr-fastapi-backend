@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     MAIN_GC_ID: str
     LOGS_TABLE_ID: str
     NOTIFY_WEB_APP_URL: str
+    POSITIVE_GC_ID: str
+    FOR_CONFIRMATION_GC_ID: str
 
     # Redis
     REDIS_HOST: str
