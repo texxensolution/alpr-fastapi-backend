@@ -16,7 +16,7 @@ def manual_search_message_builder(
     if data.user_type == 'internal':
         content += f"\n 📷 Sent from <at id=\"{data.user_id}\"></at> device"
     elif data.user_type == 'external':
-        content += f"\n 📷 Sent from @{data.username} (freelance) device"
+        content += f"\n 📷 Sent from @{data.user_id} (freelance) device"
 
     content += f"\n 📍 Location (lat, lon): ({data.latitude}, {data.longitude})"
 
